@@ -104,10 +104,12 @@ class wpCASLDAP {
 
 		if( phpCAS::isAuthenticated() ){
 			// CAS was successful
-			if ( $user = get_userdatabylogin( phpCAS::getUser() )){ // user already exists
+			if ( $user = get_user_by( phpCAS::getUser() )){ // user already exists
 				$udata = get_userdata($user->ID);
 				
-				if (!get_usermeta( $user->ID, 'wp_'.$blog_id.'_capabilities')) {
+				$userExists = is_user_member_of_blog( $user->ID, $blog_id);
+//				error_log('User exists? "'.$userExists.'"');
+				if (!$userExists) {
 					if (function_exists('add_user_to_blog')) { add_user_to_blog($blog_id, $user->ID, $wpcasldap_use_options['userrole']); }
 				}
 				
