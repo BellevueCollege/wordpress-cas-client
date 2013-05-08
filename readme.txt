@@ -1,3 +1,17 @@
+=== Fork: wpCAS-with-LDAP ===
+
+This project was forked from http://wordpress.org/support/plugin/wpcas-w-ldap
+which appears to have been abandoned. We've fixed the issue discussed here
+
+http://wordpress.org/support/topic/fix-for-role-reset
+
+and are now sharing with the community in the hopes that further fixes,
+improvements and development can continue.
+
+- shawn.south@bellevuecollege.edu
+
+(The remainder of this file is the contents of the previous project.)
+
 === wpCAS-w-LDAP ===
 Contributors: yianniy
 Tags: cas, phpcas, wpCAS-w-LDAP, central authentication service, authentication, auth, ldap, lightweight directory access protocol
