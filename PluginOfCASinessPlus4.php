@@ -1,10 +1,12 @@
 <?php
 /*
-Plugin Name: wpCAS with LDAP
-Version: 1.0
-Plugin URI: Plugin to integrate WordPress or WordPressMU with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures and <a href="http://en.wikipedia.org/wiki/Ldap">LDAP</a> for grabbing user information. Based largely on <a href="http://wordpress.org/extend/plugins/wpcas/">wpCAS</a> by <a href="http://maisonbisson.com/blog/">Casey Bisson</a>, which was largely based on <a href="http://schwink.net">Stephen Schwink</a>'s <a href="http://wordpress.org/extend/plugins/cas-authentication/">CAS Authentication</a> plugin. 
-Author: Ioannis C. Yessios
-Author URI: http://www.yessios.com/
+Plugin Name: Plugin of CASiness +4
+Plugin URI: https://github.com/BellevueCollege/PluginOfCASinessPlus4
+Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
+Version: 1.0.0.0
+Author: Bellevue College
+Author URI: http://www.bellevuecollege.edu
+License: GPL2
 */
 
 /* 
@@ -391,7 +393,7 @@ function wpcasldap_options_page() {
 	<p><?php _e( 'Now that you’ve activated this plugin, WordPress is attempting to authenticate using CAS, even if it’s not configured or misconfigured.', 'wpcasldap' ) ?></p>
 	<p><?php _e( 'Save yourself some trouble, open up another browser or use another machine to test logins. That way you can preserve this session to adjust the configuration or deactivate the plugin.', 'wpcasldap' ) ?></p>
 	<h4><?php _e( 'Also note', 'wpcasldap' ) ?></h4>
-	<p><?php _e( 'These settings are overridden by the <code>wpcasldap-conf.php</code> file, if present.', 'wpcasldap' ) ?></p>
+	<p><?php _e( 'These settings are overridden by the <code>PluginOfCASinessPlus4-conf.php</code> file, if present.', 'wpcasldap' ) ?></p>
 
 	<?php if (!isset($wpcasldap_options['include_path'])) : ?>
 	<h4><?php _e( 'phpCAS include path', 'wpcasldap' ) ?></h4>
