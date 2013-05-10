@@ -41,8 +41,8 @@ Author URI: http://www.yessios.com/
 
 
 
-if (file_exists( dirname(__FILE__).'/wpcasldap-conf.php' ) ) 
-	include_once( dirname(__FILE__).'/wpcasldap-conf.php' ); // attempt to fetch the optional config file
+if (file_exists( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ) ) 
+	include_once( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ); // attempt to fetch the optional config file
 
 if (!is_array($wpcasldap_options))
 	$wpcasldap_optons = array();
