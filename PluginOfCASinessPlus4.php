@@ -106,7 +106,7 @@ class wpCASLDAP {
 
 		if( phpCAS::isAuthenticated() ){
 			// CAS was successful
-			if ( $user = get_user_by( phpCAS::getUser() )){ // user already exists
+			if ( $user = get_user_by( 'login', phpCAS::getUser() )){ // user already exists
 				$udata = get_userdata($user->ID);
 				
 				$userExists = is_user_member_of_blog( $user->ID, $blog_id);
