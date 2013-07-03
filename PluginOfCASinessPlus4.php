@@ -222,12 +222,12 @@ function wpcasldap_nowpuser($newuserid) {
    		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
    		return;
 	}
-	
+	/*
 	if ( !$user_id || !$user) {
 		error_log("This is coming here");
 		$errors['registerfail'] = sprintf(__('<strong>ERROR</strong>: The login system couldn\'t register you in the local database. Please contact the <a href="mailto:%s">webmaster</a> '), get_option('admin_email'));
 		return;
-	} else {
+	} */else {
 		wp_new_user_notification($user_id, $user_pass);
 		wp_set_auth_cookie( $user->ID );
 
