@@ -47,9 +47,12 @@ if (file_exists( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ) )
 	include_once( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ); // attempt to fetch the optional config file
 if (file_exists( dirname(__FILE__).'/config.php' ) ) 
 	include_once( dirname(__FILE__).'/config.php' ); // attempt to fetch the optional config file
-
-if (!is_array($wpcasldap_options))
-	$wpcasldap_optons = array();
+global $wpcasldap_options;
+if($wpcasldap_options)
+{
+	if (!is_array($wpcasldap_options))
+		$wpcasldap_optons = array();
+}
 
 $wpcasldap_use_options = wpcasldap_getoptions();
 //error_log("options :".print_r($wpcasldap_use_options,true));
@@ -114,18 +117,27 @@ class wpCASLDAP {
 					// Update user information from ldap
 					if ($wpcasldap_use_options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
 						
-						$existingUser = get_ldap_user(phpCAS::getUser());		
-						$userdata = $existingUser->get_user_data();
-						$userdata["ID"] = $user->ID;
-						
-						$userID = wp_update_user( $userdata );
-						
-						if ( is_wp_error( $userID ) ) {
-							error_log("Update user failing");
-					   		$error_string = $userID->get_error_message();
-					   		error_log($error_string);
-					   		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
-					   		
+						$existingUser = get_ldap_user(phpCAS::getUser());	
+						//var_dump($existingUser);
+						if($existingUser)	
+						{
+							
+							$userdata = $existingUser->get_user_data();
+							$userdata["ID"] = $user->ID;
+							
+							$userID = wp_update_user( $userdata );
+							
+							if ( is_wp_error( $userID ) ) {
+								//error_log("Update user failing");
+								$error_string = $userID->get_error_message();
+								//error_log($error_string);
+								echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
+								
+							}
+						}
+						else
+						{
+							error_log("existing user returned false");
 						}
 					}
 				$udata = get_userdata($user->ID);
@@ -140,15 +152,23 @@ class wpCASLDAP {
 
 				if( isset( $_GET['redirect_to'] )){
 					wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
+					error_log("check if die1 :".$_GET['redirect_to']);
+					error_log("compare returns :".preg_match( '/^http/', $_GET['redirect_to']));
+
 					die();
-				}		
+				}
+				error_log("check if die2");		
 				wp_redirect( site_url( '/wp-admin/' ));
 				die();
 
 			}else{
 				// the CAS user _does_not_have_ a WP account
 				if (function_exists( 'wpcasldap_nowpuser' ) && $wpcasldap_use_options['useradd'] == 'yes')
+				{
+					error_log("check if die3");
 					wpcasldap_nowpuser( phpCAS::getUser() );
+				}
+					
 				else
 					die( __( 'you do not have permission here', 'wpcasldap' ));
 			}
@@ -193,16 +213,20 @@ class wpCASLDAP {
 
 function wpcasldap_nowpuser($newuserid) {
 	global $wpcasldap_use_options;
-	error_log("\nThis is true:".$wpcasldap_use_options['useldap']);
-	error_log("\nThis is true:".function_exists("ldap_connect"));
+	$userdata = "";
+	//error_log("\nThis is true:".$wpcasldap_use_options['useldap']);
+	//error_log("\nThis is true:".function_exists("ldap_connect"));
 	if ($wpcasldap_use_options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
 	//if ($wpcasldap_use_options['useldap'] == 'yes' ) {
 		$newuser = get_ldap_user($newuserid);
 		
 		//echo "<pre>";print_r($newuser);echo "</pre>";
-		//error_log("new user value :".$newuser);
+		error_log("new user value :".$newuserid);
 		//exit();
-		$userdata = $newuser->get_user_data();
+		if($newuser)
+			$userdata = $newuser->get_user_data();
+		else
+			echo "User not found in LDAP";
 		//echo "<br/> userdata returned :".print_r($userdata,true)."<br/> ";
 	} else {
 		$userdata = array(
@@ -214,30 +238,34 @@ function wpcasldap_nowpuser($newuserid) {
 	}
 	if (!function_exists('wp_insert_user'))
 		include_once ( ABSPATH . WPINC . '/registration.php');
-		
-	$user_id = wp_insert_user( $userdata );
-	if ( is_wp_error( $user_id ) ) {
-		error_log("inserting a user in wp failed");
-   		$error_string = $user_id->get_error_message();
-   		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
-   		return;
-	}
-	/*
-	if ( !$user_id || !$user) {
-		error_log("This is coming here");
-		$errors['registerfail'] = sprintf(__('<strong>ERROR</strong>: The login system couldn\'t register you in the local database. Please contact the <a href="mailto:%s">webmaster</a> '), get_option('admin_email'));
-		return;
-	} */else {
-		wp_new_user_notification($user_id, $user_pass);
-		wp_set_auth_cookie( $user->ID );
+	
 
-		if( isset( $_GET['redirect_to'] )){
-			wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
+	if($userdata)
+	{	
+		$user_id = wp_insert_user( $userdata );
+		if ( is_wp_error( $user_id ) ) {
+			error_log("inserting a user in wp failed");
+	   		$error_string = $user_id->get_error_message();
+	   		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
+	   		return;
+		}
+		/*
+		if ( !$user_id || !$user) {
+			error_log("This is coming here");
+			$errors['registerfail'] = sprintf(__('<strong>ERROR</strong>: The login system couldn\'t register you in the local database. Please contact the <a href="mailto:%s">webmaster</a> '), get_option('admin_email'));
+			return;
+		} */else {
+			wp_new_user_notification($user_id, $user_pass);
+			wp_set_auth_cookie( $user->ID );
+
+			if( isset( $_GET['redirect_to'] )){
+				wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
+				die();
+			}
+
+			wp_redirect( site_url( '/wp-admin/' ));
 			die();
 		}
-
-		wp_redirect( site_url( '/wp-admin/' ));
-		die();
 	}
 }
 
@@ -248,12 +276,13 @@ function get_ldap_user($uid) {
 	//Can't connect to LDAP.
 	if(!$ds) {
 		$error = 'Error in contacting the LDAP server.';
+		error_log("\n".$error);
 	} else {	
-		error_log("\n".$filter);
+		//error_log("\n".$filter);
 		/*
 		$ldap_dn = $wpcasldap_use_options['ldapbasedn'];
 	    */
-		echo "<h2>Connected</h2>";
+		//echo "<h2>Connected</h2>";
 		
 		// Make sure the protocol is set to version 3
 		if(!ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3)) {
@@ -268,7 +297,8 @@ function get_ldap_user($uid) {
 			//Check to make sure we're bound.
 			if(!$bind) {
 				$error = 'Anonymous bind to LDAP failed.';
-				echo "error:".$error;
+				echo "\nERROR: ".$error;
+				//exit();
 			} else {
 
 				/*
