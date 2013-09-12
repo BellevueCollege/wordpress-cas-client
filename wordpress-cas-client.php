@@ -115,7 +115,7 @@ add_action('retrieve_password', array('wpCASLDAP', 'disable_function'));
 add_action('password_reset', array('wpCASLDAP', 'disable_function'));
 add_filter('show_password_fields', array('wpCASLDAP', 'show_password_fields'));
 
-if (is_admin() ) {
+if (is_admin() && !is_multisite()) {// Added condition not multisite because if multisite is true thn it should only show the settings in network admin menu.
 	add_action( 'admin_init', 'wpcasldap_register_settings' );
 	add_action( 'admin_menu', 'wpcasldap_options_page_add' );	
 }
@@ -296,7 +296,8 @@ function wpcasldap_nowpuser($newuserid) {
 function get_ldap_user($uid) {
 	global $wpcasldap_use_options;
 	$ds = ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);//ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);
-	error_log("username :".$uid);
+	error_log("host :".$wpcasldap_use_options['ldaphost']);
+	error_log("port :".$wpcasldap_use_options['ldapport']);
 	//Can't connect to LDAP.
 	if(!$ds) {
 		$error = 'Error in contacting the LDAP server.';
@@ -315,6 +316,8 @@ function get_ldap_user($uid) {
 			//Connection made -- bind anonymously and get dn for username.
 			$ldaprdn  = $GLOBALS['ldapUser'];     // ldap rdn or dn
 			$ldappass = $GLOBALS['ldapPassword'];  // associated password
+			error_log("username :".$ldaprdn);
+			error_log("password :".$ldappass);
 			//echo "ldap user :".$ldaprdn ;
 			$bind = @ldap_bind($ds,$ldaprdn,$ldappass);
 			//$bind = @ldap_bind($ds);
