@@ -42,11 +42,38 @@ License: GPL2
 */
 
 
-
+/*
 if (file_exists( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ) ) 
-	include_once( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ); // attempt to fetch the optional config file
+	include_once( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ); // attempt to fetch the optional config file */
 if (file_exists( dirname(__FILE__).'/config.php' ) ) 
 	include_once( dirname(__FILE__).'/config.php' ); // attempt to fetch the optional config file
+
+if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) ) 
+	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
+
+define("CAPABILITY","edit_themes");
+// This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
+global $get_options_func ;
+$get_options_func = "get_option";
+//This global variable is defaulted to 'options.php' , but for network setting we want the form to submit to itself, so we will leave it empty
+global $form_action;
+$form_action = "options.php";
+	if(is_multisite())
+	{
+		updateNetworkSettings();
+		add_action( 'network_admin_menu', 'cas_client_settings' );
+
+		error_log("multisite true");
+		$get_options_func = "get_site_option";
+		$form_action = "";
+	}
+	error_log("version :". $get_options_func('wpcasldap_cas_version'));
+	error_log("version :". $get_options_func('wpcasldap_server_hostname'));
+
+
+
+
+
 global $wpcasldap_options;
 if($wpcasldap_options)
 {
@@ -107,7 +134,7 @@ class wpCASLDAP {
 		global $wpcasldap_use_options, $cas_configured, $blog_id;
 
 		if ( !$cas_configured )
-			die( __( 'wpCAS with LDAP plugin not configured', 'wpcasldap' ));
+			die( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ));
 
 		if( phpCAS::isAuthenticated() ){
 			// CAS was successful
@@ -183,11 +210,11 @@ class wpCASLDAP {
 	// hook CAS logout to WP logout
 	function logout() {
 		global $cas_configured;
-
+		global $get_options_func;
 		if (!$cas_configured)
-			die( __( 'wpCAS with LDAP plugin not configured', 'wpcasldap' ));
+			die( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ));
 
-		phpCAS::logout( array( 'url' => get_settings( 'siteurl' )));
+		phpCAS::logout( array( 'url' => $get_options_func( 'siteurl' )));
 		exit();
 	}
 
@@ -468,6 +495,9 @@ function wpcasldap_register_settings() {
 	
 	$options = array('email_suffix', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap');
 
+
+
+
 	foreach ($options as $o) {
 		if (!isset($wpcasldap_options[$o])) {
 			switch($o) {
@@ -517,41 +547,57 @@ function wpcasldap_dummy($in) {
 	return $in;
 }
 
+function cas_client_settings()
+{
+	add_submenu_page("settings.php","CAS Client Settings","CAS Client Settings","manage_network","casclient",'wpcasldap_options_page');
+}
+
 function wpcasldap_options_page_add() {
+
+	
+
 	if (function_exists('add_management_page')) 
-		add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', 8, 'wpcasldap', 'wpcasldap_options_page');		
+		add_submenu_page('options-general.php', 'CAS Client Settings', 'CAS Client Settings', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');	
+		//add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');		
 	else
-		add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ), 8, basename(__FILE__), 'wpcasldap_options_page');
+		add_options_page( 'CAS Client Settings','CAS Client Settings',CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
+		//add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ),CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
 
 } 
 
+
+
 function wpcasldap_getoptions() {
 	global $wpcasldap_options;
+	global $get_options_func;
 
 	$out = array (
-			'email_suffix' => get_option('wpcasldap_email_suffix'),
-			'cas_version' => get_option('wpcasldap_cas_version'),
-			'include_path' => get_option('wpcasldap_include_path'),
-			'server_hostname' => get_option('wpcasldap_server_hostname'),
-			'server_port' => get_option('wpcasldap_server_port'),
-			'server_path' => get_option('wpcasldap_server_path'),
-			'useradd' => get_option('wpcasldap_useradd'),
-			'userrole' => get_option('wpcasldap_userrole'),
-			'ldaphost' => get_option('wpcasldap_ldaphost'),
-			'ldapport' => get_option('wpcasldap_ldapport'),
-			'useldap' => get_option('wpcasldap_useldap'),
-			'ldapbasedn' => get_option('wpcasldap_ldapbasedn')			
+			'email_suffix' => $get_options_func('wpcasldap_email_suffix'),
+			'cas_version' => $get_options_func('wpcasldap_cas_version'),
+			'include_path' => $get_options_func('wpcasldap_include_path'),
+			'server_hostname' => $get_options_func('wpcasldap_server_hostname'),
+			'server_port' => $get_options_func('wpcasldap_server_port'),
+			'server_path' => $get_options_func('wpcasldap_server_path'),
+			'useradd' => $get_options_func('wpcasldap_useradd'),
+			'userrole' => $get_options_func('wpcasldap_userrole'),
+			'ldaphost' => $get_options_func('wpcasldap_ldaphost'),
+			'ldapport' => $get_options_func('wpcasldap_ldapport'),
+			'useldap' => $get_options_func('wpcasldap_useldap'),
+			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn')			
 		);
 	
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
 		foreach ($wpcasldap_options as $key => $val) {
 			$out[$key] = $val;	
 		}
+		error_log("OUT :".print_r($out,true));
 	return $out;
 }
 
 function wpcasldap_options_page() {
-	global $wpdb, $wpcasldap_options;
+
+
+	global $wpdb, $wpcasldap_options,$form_action;
 	
 	//echo "<pre>"; print_r($wpcasldap_options); echo "</pre>";
 	// Get Options
@@ -560,7 +606,8 @@ function wpcasldap_options_page() {
 	?>
 	<div class="wrap">
 	<h2>CAS Authentication Options</h2>
-	<form method="post" action="options.php">
+	<!-- <form method="post" action="options.php"> -->
+	<form method="post" action="<?php echo $form_action?>">
 		<?php
             settings_fields( 'wpcasldap' );
         ?>
