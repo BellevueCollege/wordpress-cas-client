@@ -1,0 +1,118 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WordPress Cas Client\n"
+"POT-Creation-Date: 2013-09-13 13:58-0800\n"
+"PO-Revision-Date: 2013-09-13 14:04-0800\n"
+"Last-Translator: Erik Steen <erik.steen@bellevuecollege.edu>\n"
+"Language-Team: Bellevue College\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.7\n"
+"X-Poedit-KeywordsList: _e;__\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: wordpress-cas-client.php:134 wordpress-cas-client.php:212
+msgid "WordPress CAS Client plugin not configured"
+msgstr ""
+
+#: wordpress-cas-client.php:197
+msgid "you do not have permission here"
+msgstr ""
+
+#: wordpress-cas-client.php:234
+msgid "Sorry, this feature is disabled."
+msgstr ""
+
+#: wordpress-cas-client.php:610
+msgid "Configuration settings for WordPress CAS Client"
+msgstr ""
+
+#: wordpress-cas-client.php:611
+msgid "Note"
+msgstr ""
+
+#: wordpress-cas-client.php:613
+msgid ""
+"Now that you’ve activated this plugin, WordPress is attempting to "
+"authenticate using CAS, even if it’s not configured or misconfigured."
+msgstr ""
+
+#: wordpress-cas-client.php:614
+msgid ""
+"Save yourself some trouble, open up another browser or use another machine "
+"to test logins. That way you can preserve this session to adjust the "
+"configuration or deactivate the plugin."
+msgstr ""
+
+#: wordpress-cas-client.php:618
+msgid "phpCAS include path"
+msgstr ""
+
+#: wordpress-cas-client.php:620
+msgid ""
+"Note: The phpCAS library is required for this plugin to work. We need to "
+"know the server path to the CAS.php file."
+msgstr ""
+
+#: wordpress-cas-client.php:628
+msgid "CAS.php Path"
+msgstr ""
+
+#: wordpress-cas-client.php:644
+msgid "phpCAS::client() parameters"
+msgstr ""
+
+#: wordpress-cas-client.php:651
+msgid "CAS version"
+msgstr ""
+
+#: wordpress-cas-client.php:668
+msgid "Server Hostname"
+msgstr ""
+
+#: wordpress-cas-client.php:682
+msgid "Server Port"
+msgstr ""
+
+#: wordpress-cas-client.php:696
+msgid "Server Path"
+msgstr ""
+
+#: wordpress-cas-client.php:713
+msgid "Treatment of Unregistered User"
+msgstr ""
+
+#: wordpress-cas-client.php:719
+msgid "Add to Database"
+msgstr ""
+
+#: wordpress-cas-client.php:737
+msgid "Default Role"
+msgstr ""
+
+#: wordpress-cas-client.php:760
+msgid "Use LDAP to get user info"
+msgstr ""
+
+#: wordpress-cas-client.php:785
+msgid "E-mail Suffix"
+msgstr ""
+
+#: wordpress-cas-client.php:801
+msgid "LDAP parameters"
+msgstr ""
+
+#: wordpress-cas-client.php:808
+msgid "LDAP Host"
+msgstr ""
+
+#: wordpress-cas-client.php:821
+msgid "LDAP Port"
+msgstr ""
+
+#: wordpress-cas-client.php:835
+msgid "LDAP Base DN"
+msgstr ""
