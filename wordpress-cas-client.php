@@ -149,6 +149,8 @@ class wpCASLDAP {
 							$userdata = $existingUser->get_user_data();
 							$userdata["ID"] = $user->ID;
 							
+							unset($userdata['role']);//Remove role from userdata
+
 							$userID = wp_update_user( $userdata );
 							
 							if ( is_wp_error( $userID ) ) {
