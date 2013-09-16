@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Plugin of CASiness +4
-Plugin URI: https://github.com/BellevueCollege/PluginOfCASinessPlus4
+Plugin Name: WordPress CAS Client
+Plugin URI: https://github.com/BellevueCollege/wordpress-cas-client
 Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.0.0.0
+Version: 1.1.0.0
 Author: Bellevue College
 Author URI: http://www.bellevuecollege.edu
 License: GPL2
@@ -42,11 +42,35 @@ License: GPL2
 */
 
 
-
-if (file_exists( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ) ) 
-	include_once( dirname(__FILE__).'/PluginOfCASinessPlus4-conf.php' ); // attempt to fetch the optional config file
 if (file_exists( dirname(__FILE__).'/config.php' ) ) 
 	include_once( dirname(__FILE__).'/config.php' ); // attempt to fetch the optional config file
+
+if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) ) 
+	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
+
+define("CAPABILITY","edit_themes");
+// This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
+global $get_options_func ;
+$get_options_func = "get_option";
+//This global variable is defaulted to 'options.php' , but for network setting we want the form to submit to itself, so we will leave it empty
+global $form_action;
+$form_action = "options.php";
+	if(is_multisite())
+	{
+		updateNetworkSettings();
+		add_action( 'network_admin_menu', 'cas_client_settings' );
+
+		error_log("multisite true");
+		$get_options_func = "get_site_option";
+		$form_action = "";
+	}
+	error_log("version :". $get_options_func('wpcasldap_cas_version'));
+	error_log("version :". $get_options_func('wpcasldap_server_hostname'));
+
+
+
+
+
 global $wpcasldap_options;
 if($wpcasldap_options)
 {
@@ -91,7 +115,7 @@ add_action('retrieve_password', array('wpCASLDAP', 'disable_function'));
 add_action('password_reset', array('wpCASLDAP', 'disable_function'));
 add_filter('show_password_fields', array('wpCASLDAP', 'show_password_fields'));
 
-if (is_admin() ) {
+if (is_admin() && !is_multisite()) {// Added condition not multisite because if multisite is true thn it should only show the settings in network admin menu.
 	add_action( 'admin_init', 'wpcasldap_register_settings' );
 	add_action( 'admin_menu', 'wpcasldap_options_page_add' );	
 }
@@ -107,7 +131,7 @@ class wpCASLDAP {
 		global $wpcasldap_use_options, $cas_configured, $blog_id;
 
 		if ( !$cas_configured )
-			die( __( 'wpCAS with LDAP plugin not configured', 'wpcasldap' ));
+			die( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ));
 
 		if( phpCAS::isAuthenticated() ){
 			// CAS was successful
@@ -125,6 +149,8 @@ class wpCASLDAP {
 							$userdata = $existingUser->get_user_data();
 							$userdata["ID"] = $user->ID;
 							
+							unset($userdata['role']);//Remove role from userdata
+
 							$userID = wp_update_user( $userdata );
 							
 							if ( is_wp_error( $userID ) ) {
@@ -183,11 +209,11 @@ class wpCASLDAP {
 	// hook CAS logout to WP logout
 	function logout() {
 		global $cas_configured;
-
+		global $get_options_func;
 		if (!$cas_configured)
-			die( __( 'wpCAS with LDAP plugin not configured', 'wpcasldap' ));
+			die( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ));
 
-		phpCAS::logout( array( 'url' => get_settings( 'siteurl' )));
+		phpCAS::logout( array( 'url' => $get_options_func( 'siteurl' )));
 		exit();
 	}
 
@@ -272,7 +298,8 @@ function wpcasldap_nowpuser($newuserid) {
 function get_ldap_user($uid) {
 	global $wpcasldap_use_options;
 	$ds = ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);//ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);
-	error_log("username :".$uid);
+	error_log("host :".$wpcasldap_use_options['ldaphost']);
+	error_log("port :".$wpcasldap_use_options['ldapport']);
 	//Can't connect to LDAP.
 	if(!$ds) {
 		$error = 'Error in contacting the LDAP server.';
@@ -291,6 +318,8 @@ function get_ldap_user($uid) {
 			//Connection made -- bind anonymously and get dn for username.
 			$ldaprdn  = $GLOBALS['ldapUser'];     // ldap rdn or dn
 			$ldappass = $GLOBALS['ldapPassword'];  // associated password
+			error_log("username :".$ldaprdn);
+			error_log("password :".$ldappass);
 			//echo "ldap user :".$ldaprdn ;
 			$bind = @ldap_bind($ds,$ldaprdn,$ldappass);
 			//$bind = @ldap_bind($ds);
@@ -468,6 +497,9 @@ function wpcasldap_register_settings() {
 	
 	$options = array('email_suffix', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap');
 
+
+
+
 	foreach ($options as $o) {
 		if (!isset($wpcasldap_options[$o])) {
 			switch($o) {
@@ -517,41 +549,57 @@ function wpcasldap_dummy($in) {
 	return $in;
 }
 
+function cas_client_settings()
+{
+	add_submenu_page("settings.php","CAS Client Settings","CAS Client Settings","manage_network","casclient",'wpcasldap_options_page');
+}
+
 function wpcasldap_options_page_add() {
+
+	
+
 	if (function_exists('add_management_page')) 
-		add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', 8, 'wpcasldap', 'wpcasldap_options_page');		
+		add_submenu_page('options-general.php', 'CAS Client Settings', 'CAS Client Settings', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');	
+		//add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');		
 	else
-		add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ), 8, basename(__FILE__), 'wpcasldap_options_page');
+		add_options_page( 'CAS Client Settings','CAS Client Settings',CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
+		//add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ),CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
 
 } 
 
+
+
 function wpcasldap_getoptions() {
 	global $wpcasldap_options;
+	global $get_options_func;
 
 	$out = array (
-			'email_suffix' => get_option('wpcasldap_email_suffix'),
-			'cas_version' => get_option('wpcasldap_cas_version'),
-			'include_path' => get_option('wpcasldap_include_path'),
-			'server_hostname' => get_option('wpcasldap_server_hostname'),
-			'server_port' => get_option('wpcasldap_server_port'),
-			'server_path' => get_option('wpcasldap_server_path'),
-			'useradd' => get_option('wpcasldap_useradd'),
-			'userrole' => get_option('wpcasldap_userrole'),
-			'ldaphost' => get_option('wpcasldap_ldaphost'),
-			'ldapport' => get_option('wpcasldap_ldapport'),
-			'useldap' => get_option('wpcasldap_useldap'),
-			'ldapbasedn' => get_option('wpcasldap_ldapbasedn')			
+			'email_suffix' => $get_options_func('wpcasldap_email_suffix'),
+			'cas_version' => $get_options_func('wpcasldap_cas_version'),
+			'include_path' => $get_options_func('wpcasldap_include_path'),
+			'server_hostname' => $get_options_func('wpcasldap_server_hostname'),
+			'server_port' => $get_options_func('wpcasldap_server_port'),
+			'server_path' => $get_options_func('wpcasldap_server_path'),
+			'useradd' => $get_options_func('wpcasldap_useradd'),
+			'userrole' => $get_options_func('wpcasldap_userrole'),
+			'ldaphost' => $get_options_func('wpcasldap_ldaphost'),
+			'ldapport' => $get_options_func('wpcasldap_ldapport'),
+			'useldap' => $get_options_func('wpcasldap_useldap'),
+			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn')			
 		);
 	
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
 		foreach ($wpcasldap_options as $key => $val) {
 			$out[$key] = $val;	
 		}
+		error_log("OUT :".print_r($out,true));
 	return $out;
 }
 
 function wpcasldap_options_page() {
-	global $wpdb, $wpcasldap_options;
+
+
+	global $wpdb, $wpcasldap_options,$form_action;
 	
 	//echo "<pre>"; print_r($wpcasldap_options); echo "</pre>";
 	// Get Options
@@ -559,170 +607,250 @@ function wpcasldap_options_page() {
 	
 	?>
 	<div class="wrap">
-	<h2>CAS Authentication Options</h2>
-	<form method="post" action="options.php">
-		<?php
-            settings_fields( 'wpcasldap' );
-        ?>
-	<h3><?php _e( 'wpCAS with LDAP options', 'wpcasldap' ) ?></h3>
-	<h4><?php _e( 'Note', 'wpcasldap' ) ?></h4>
-	<p><?php _e( 'Now that you’ve activated this plugin, WordPress is attempting to authenticate using CAS, even if it’s not configured or misconfigured.', 'wpcasldap' ) ?></p>
-	<p><?php _e( 'Save yourself some trouble, open up another browser or use another machine to test logins. That way you can preserve this session to adjust the configuration or deactivate the plugin.', 'wpcasldap' ) ?></p>
-	<h4><?php _e( 'Also note', 'wpcasldap' ) ?></h4>
-	<p><?php _e( 'These settings are overridden by the <code>PluginOfCASinessPlus4-conf.php</code> file, if present.', 'wpcasldap' ) ?></p>
+	<h2>CAS Client Settings</h2>
+	<!-- <form method="post" action="options.php"> -->
+	<form method="post" action="<?php echo $form_action?>">
+		<?php settings_fields( 'wpcasldap' ); ?>
 
-	<?php if (!isset($wpcasldap_options['include_path'])) : ?>
-	<h4><?php _e( 'phpCAS include path', 'wpcasldap' ) ?></h4>
-    <blockquote><blockquote>
-	<table width="500px" cellspacing="2" cellpadding="5" class="form-table">
-		<tr>
-			<td colspan="2"><?php _e( 'Full absolute path to CAS.php script', 'wpcasldap' ) ?></td>
-		</tr>
-		<tr valign="center"> 
-			<th width="300px" scope="row"><?php _e( 'CAS.php path', 'wpcasldap' ) ?></th> 
-			<td><input type="text" name="wpcasldap_include_path" id="include_path_inp" value="<?php echo $optionarray_def['include_path']; ?>" size="35" /></td>
-		</tr>
-	</table>
-    </blockquote></blockquote>
+		<h3><?php _e('Configuration settings for WordPress CAS Client', 'wpcasldap') ?></h3>
+		<h4><?php _e('Note', 'wpcasldap') ?></h4>
+		<p>
+			<?php _e('Now that you’ve activated this plugin, WordPress is attempting to authenticate using CAS, even if it’s not configured or misconfigured.', 'wpcasldap' ) ?><br />
+			<?php _e('Save yourself some trouble, open up another browser or use another machine to test logins. That way you can preserve this session to adjust the configuration or deactivate the plugin.', 'wpcasldap') ?>"
+		</p>
+
+		<?php if (!isset($wpcasldap_options['include_path'])) : ?>
+		<h4><?php _e('phpCAS include path', 'wpcasldap') ?></h4>
+		<p>
+			<small><em><?php _e('Note: The phpCAS library is required for this plugin to work. We need to know the server path to the CAS.php file.', 'wpcasldap') ?></em></small>
+		</p>
+
+		<table class="form-table">
+
+	        <tr valign="top">
+				<th scope="row">
+					<label>
+						<?php _e('CAS.php Path', 'wpcasldap') ?>
+					</label>
+				</th>
+
+				<td>
+					<input type="text" size="80" name="wpcasldap_include_path" id="include_path_inp" value="<?php echo $optionarray_def['include_path']; ?>" />
+				</td>
+			</tr>
+
+		</table>
 	<?php endif; ?>
     
     <?php if (!isset($wpcasldap_options['cas_version']) ||
 			!isset($wpcasldap_options['server_hostname']) ||
 			!isset($wpcasldap_options['server_port']) ||
 			!isset($wpcasldap_options['server_path']) ) : ?>
-	<h4><?php _e( 'phpCAS::client() parameters', 'wpcasldapldap' ) ?></h4>
-    <blockquote><blockquote>
-	<table width="500px" cellspacing="2" cellpadding="5" class="editform">
+	<h4><?php _e('phpCAS::client() parameters', 'wpcasldap') ?></h4>
+	<table class="form-table">
 	    <?php if (!isset($wpcasldap_options['cas_version'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row">CAS verions</th> 
-			<td><select name="wpcasldap_cas_version" id="cas_version_inp">
+
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('CAS version', 'wpcasldap') ?>
+				</lable>
+			</th>
+
+			<td>
+				<select name="wpcasldap_cas_version" id="cas_version_inp">
                     <option value="2.0" <?php echo ($optionarray_def['cas_version'] == '2.0')?'selected':''; ?>>CAS_VERSION_2_0</option>
                     <option value="1.0" <?php echo ($optionarray_def['cas_version'] == '1.0')?'selected':''; ?>>CAS_VERSION_1_0</option>
                 </select>
 			</td>
 		</tr>
         <?php endif; ?>
+
 	    <?php if (!isset($wpcasldap_options['server_hostname'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row"><?php _e( 'server hostname', 'wpcasldap' ) ?></th> 
-			<td><input type="text" name="wpcasldap_server_hostname" id="server_hostname_inp" value="<?php echo $optionarray_def['server_hostname']; ?>" size="35" /></td>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('Server Hostname', 'wpcasldap') ?>
+				</label>
+			</th>
+
+			<td>
+				<input type="text" size="50" name="wpcasldap_server_hostname" id="server_hostname_inp" value="<?php echo $optionarray_def['server_hostname']; ?>" />
+			</td>
 		</tr>
         <?php endif; ?>
+
 	    <?php if (!isset($wpcasldap_options['server_port'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row"><?php _e( 'server port', 'wpcasldap' ) ?></th> 
-			<td><input type="text" name="wpcasldap_server_port" id="server_port_inp" value="<?php echo $optionarray_def['server_port']; ?>" size="35" /></td>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('Server Port','wpcasldap') ?>
+				</label>
+			</th>
+
+			<td>
+				<input type="text" size="50" name="wpcasldap_server_port" id="server_port_inp" value="<?php echo $optionarray_def['server_port']; ?>" />
+			</td>
 		</tr>
         <?php endif; ?>
+
 	    <?php if (!isset($wpcasldap_options['server_path'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row"><?php _e( 'server path', 'wpcasldap' ) ?></th> 
-			<td><input type="text" name="wpcasldap_server_path" id="server_path_inp" value="<?php echo $optionarray_def['server_path']; ?>" size="35" /></td>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('Server Path','wpcasldap') ?>
+				</label>
+			</th>
+
+			<td>
+				<input type="text" size="50" name="wpcasldap_server_path" id="server_path_inp" value="<?php echo $optionarray_def['server_path']; ?>" />
+			</td>
 		</tr>
         <?php endif; ?>
 	</table>
-    </blockquote></blockquote>
 	<?php endif; ?>
 
     <?php if (!isset($wpcasldap_options['useradd']) ||
 			!isset($wpcasldap_options['userrole']) ||
 			!isset($wpcasldap_options['useldap']) ||
 			!isset($wpcasldap_options['email_suffix']) ) : ?>
-	<h4><?php _e( 'Treatment of Unregistered User', 'wpcasldap' ) ?></h4>
-    <blockquote><blockquote>
 
-	<table width="500px" cellspacing="2" cellpadding="5" class="editform">
-	    <?php if (!isset($wpcasldap_options['useradd'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row">Add to Database</th> 
-			<td><input type="radio" name="wpcasldap_useradd" id="useradd_yes" value="yes" 
-            		<?php echo ($optionarray_def['useradd'] == 'yes')?'checked="checked"':''; ?> />Yes |
-            	<input type="radio" name="wpcasldap_useradd" id="useradd_no" value="no" 
-            		<?php echo ($optionarray_def['useradd'] != 'yes')?'checked="checked"':''; ?> />No
-			</td>
-		</tr>
-        <?php endif; ?>
-	    <?php if (!isset($wpcasldap_options['userrole'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row"><?php _e( 'Default Role', 'wpcasldap' ) ?></th> 
-			<td><select name="wpcasldap_userrole" id="cas_version_inp">
-				<option value="subscriber" <?php echo ($optionarray_def['userrole'] == 'subscriber')?'selected':''; ?>>Subscriber</option>
-				<option value="contributor" <?php echo ($optionarray_def['userrole'] == 'contributor')?'selected':''; ?>>Contributor</option>
-				<option value="author" <?php echo ($optionarray_def['userrole'] == 'author')?'selected':''; ?>>Author</option>
-				<option value="editor" <?php echo ($optionarray_def['userrole'] == 'editor')?'selected':''; ?>>Editor</option>
-				<option value="administrator" <?php echo ($optionarray_def['userrole'] == 'administrator')?'selected':''; ?>>Administrator</option>
-                </select>
-            </td>
-		</tr>
-        <?php endif; ?>
-	    <?php if (!isset($wpcasldap_options['useldap'])) : ?>
-			<?php if (function_exists('ldap_connect')) : 
+	<h4><?php _e('Treatment of Unregistered User','wpcasldap') ?></h4>
+		<table class="form-table">
+		    <?php if (!isset($wpcasldap_options['useradd'])) : ?>
+			<tr valign="top">
+				<th scope="row">
+					<label>
+						<?php _e('Add to Database','wpcasldap') ?>
+					</lable>
+				</th>
 
-				//error_log("ldap connect exists");
-			?>
-			<tr valign="center"> 
-				<th width="300px" scope="row">Use LDAP to get user info</th> 
-				<td><input type="radio" name="wpcasldap_useldap" id="useldap_yes" value="yes" 
-						<?php echo ($optionarray_def['useldap'] == 'yes')?'checked="checked"':''; ?> />Yes |
-					<input type="radio" name="wpcasldap_useldap" id="useldap_no" value="no" 
-						<?php echo ($optionarray_def['useldap'] != 'yes')?'checked="checked"':''; ?> />No
+				<td>
+
+					<input type="radio" name="wpcasldap_useradd" id="useradd_yes" value="yes" <?php echo ($optionarray_def['useradd'] == 'yes')?'checked="checked"':''; ?> />
+					<label for="useradd_yes">Yes &nbsp;</label>
+
+					<input type="radio" name="wpcasldap_useradd" id="useradd_no" value="no" <?php echo ($optionarray_def['useradd'] != 'yes')?'checked="checked"':''; ?> />
+					<label for="useradd_no">No &nbsp;</label>
 				</td>
 			</tr>
-			<?php
-			else :
-			?>
-				<input type="hidden" name="wpcasldap_useldap" id="useldap_hidden" value="no" />
-			<?php
-			endif;
-			?>
-        <?php endif; ?>
-	    <?php if (!isset($wpcasldap_options['email_suffix'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row">E-mail Suffix</th> 
-			<td><input type="text" name="wpcasldap_email_suffix" id="server_port_inp" value="<?php echo $optionarray_def['email_suffix']; ?>" size="35" />
-			</td>
-		</tr>
-        <?php endif; ?>
-	</table>
-    </blockquote></blockquote>
-    <?php endif; ?>
+	        <?php endif; ?>
+		    <?php if (!isset($wpcasldap_options['userrole'])) : ?>
+			<tr valign="top">
+				<th scope="row">
+					<label>
+						<?php _e('Default Role','wpcasldap') ?>
+					</label>
+				</th>
+
+				<td>
+					<select name="wpcasldap_userrole" id="cas_version_inp">
+						<option value="subscriber" <?php echo ($optionarray_def['userrole'] == 'subscriber')?'selected':''; ?>>Subscriberssss</option>
+						<option value="contributor" <?php echo ($optionarray_def['userrole'] == 'contributor')?'selected':''; ?>>Contributor</option>
+						<option value="author" <?php echo ($optionarray_def['userrole'] == 'author')?'selected':''; ?>>Author</option>
+						<option value="editor" <?php echo ($optionarray_def['userrole'] == 'editor')?'selected':''; ?>>Editor</option>
+						<option value="administrator" <?php echo ($optionarray_def['userrole'] == 'administrator')?'selected':''; ?>>Administrator</option>
+	                </select>
+	            </td>
+			</tr>
+	        <?php endif; ?>
+		    <?php if (!isset($wpcasldap_options['useldap'])) : ?>
+				<?php if (function_exists('ldap_connect')) :
+
+					//error_log("ldap connect exists");
+				?>
+				<tr valign="top">
+					<th scope="row">
+						<label>
+							<?php _e('Use LDAP to get user info','wpcasldap') ?>
+						</label>
+					</th>
+
+					<td>
+						<input type="radio" name="wpcasldap_useldap" id="useldap_yes" value="yes" <?php echo ($optionarray_def['useldap'] == 'yes')?'checked="checked"':''; ?> />
+						<label for="useldap_yes">Yes &nbsp;</label>
+
+						<input type="radio" name="wpcasldap_useldap" id="useldap_no" value="no" <?php echo ($optionarray_def['useldap'] != 'yes')?'checked="checked"':''; ?> />
+						<label for="useldap_no">No &nbsp;</label>
+					</td>
+				</tr>
+				<?php
+				else :
+				?>
+					<input type="hidden" name="wpcasldap_useldap" id="useldap_hidden" value="no" />
+				<?php
+				endif;
+				?>
+	        <?php endif; ?>
+
+		   <?php if (!isset($wpcasldap_options['email_suffix'])) : ?>
+		   <tr valign="center">
+				<th scope="row">
+					<label>
+						<?php _e('E-mail Suffix','wpcasldap') ?>
+					</label>
+				</th>
+
+				<td>
+					<input type="text" size="50" name="wpcasldap_email_suffix" id="server_port_inp" value="<?php echo $optionarray_def['email_suffix']; ?>" />
+				</td>
+			</tr>
+	        <?php endif; ?>
+		</table>
+	    <?php endif; ?>
     
     <?php if (function_exists('ldap_connect')) : ?>
     <?php if (!isset($wpcasldap_options['ldapbasedn']) ||
 			!isset($wpcasldap_options['ldapport']) ||
 			!isset($wpcasldap_options['ldaphost']) ) : ?>
-	<h4><?php _e( 'LDAP parameters', 'wpcasldapldap' ) ?></h4>
-    <blockquote><blockquote>
-	<table width="500px" cellspacing="2" cellpadding="5" class="editform">
+	<h4><?php _e('LDAP parameters','wpcasldap') ?></h4>
+
+	<table class="form-table">
 	    <?php if (!isset($wpcasldap_options['ldaphost'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row">LDAP Host</th> 
-			<td><input type="text" name="wpcasldap_ldaphost" id="ldap_host_inp" value="<?php echo $optionarray_def['ldaphost']; ?>" size="35" />
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('LDAP Host','wpcasldap') ?>
+				</label>
+			</th>
+
+			<td>
+				<input type="text" size="50" name="wpcasldap_ldaphost" id="ldap_host_inp" value="<?php echo $optionarray_def['ldaphost']; ?>" />
 			</td>
 		</tr>
         <?php endif; ?>
 	    <?php if (!isset($wpcasldap_options['ldapport'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row">LDAP Port</th> 
-			<td><input type="text" name="wpcasldap_ldapport" id="ldap_port_inp" value="<?php echo $optionarray_def['ldapport']; ?>" size="35" />
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('LDAP Port','wpcasldap') ?>
+				</label>
+			</th>
+
+			<td>
+				<input type="text" size="50" name="wpcasldap_ldapport" id="ldap_port_inp" value="<?php echo $optionarray_def['ldapport']; ?>"  />
 			</td>
 		</tr>
         <?php endif; ?>
+
 	    <?php if (!isset($wpcasldap_options['ldapbasedn'])) : ?>
-		<tr valign="center"> 
-			<th width="300px" scope="row">LDAP Base DN</th> 
-			<td><input type="text" name="wpcasldap_ldapbasedn" id="ldap_basedn_inp" value="<?php echo $optionarray_def['ldapbasedn']; ?>" size="35" />
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('LDAP Base DN','wpcasldap') ?>
+				</label>
+			</th>
+			<td>
+				<input type="text" size="50" name="wpcasldap_ldapbasedn" id="ldap_basedn_inp" value="<?php echo $optionarray_def['ldapbasedn']; ?>" />
 			</td>
 		</tr>
         <?php endif; ?>
 	</table>
-    </blockquote></blockquote>
     <?php endif; ?>
     <?php endif; ?>
-   
+
 	<div class="submit">
-		<input type="submit" name="wpcasldap_submit" value="<?php _e('Update Options') ?> &raquo;" />
+		<input type="submit" name="wpcasldap_submit" value="Update Options &raquo;" />
 	</div>
 	</form>
 <?php
