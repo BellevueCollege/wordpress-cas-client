@@ -850,7 +850,7 @@ function wpcasldap_options_page() {
     <?php endif; ?>
 
 	<div class="submit">
-		<input type="submit" name="wpcasldap_submit" value="Update Options &raquo;" />
+		<input type="submit" name="wpcasldap_submit" value="Save" />
 	</div>
 	</form>
 <?php
