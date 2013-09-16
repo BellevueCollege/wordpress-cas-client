@@ -551,7 +551,7 @@ function wpcasldap_dummy($in) {
 
 function cas_client_settings()
 {
-	add_submenu_page("settings.php","CAS Client Settings","CAS Client Settings","manage_network","casclient",'wpcasldap_options_page');
+	add_submenu_page("settings.php","CAS Client","CAS Client","manage_network","casclient",'wpcasldap_options_page');
 }
 
 function wpcasldap_options_page_add() {
@@ -559,10 +559,10 @@ function wpcasldap_options_page_add() {
 	
 
 	if (function_exists('add_management_page')) 
-		add_submenu_page('options-general.php', 'CAS Client Settings', 'CAS Client Settings', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');	
+		add_submenu_page('options-general.php', 'CAS Client', 'CAS Client', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');	
 		//add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');		
 	else
-		add_options_page( 'CAS Client Settings','CAS Client Settings',CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
+		add_options_page( 'CAS Client','CAS Client',CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
 		//add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ),CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
 
 } 
@@ -607,7 +607,7 @@ function wpcasldap_options_page() {
 	
 	?>
 	<div class="wrap">
-	<h2>CAS Client Settings</h2>
+	<h2>CAS Client</h2>
 	<!-- <form method="post" action="options.php"> -->
 	<form method="post" action="<?php echo $form_action?>">
 		<?php settings_fields( 'wpcasldap' ); ?>
