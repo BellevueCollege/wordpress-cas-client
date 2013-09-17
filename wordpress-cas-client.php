@@ -461,6 +461,8 @@ class wpcasldapuser
 		if (isset($this->data[0]['uid'][0]) || isset($this->data[0]['employeeid'][0])) // updating the if to have employeeid check also
 		{
 			$userrole = "";
+			$usernicename = sanitize_title_with_dashes($this->data[0]['samaccountname'][0]);
+			//error_log("user nice name ".$usernicename);
 			//echo "<br/> user login".$this->data[0]['samaccountname'][0];
 			if($this->data[0]['employeeid'][0] != null)
 			{
@@ -478,7 +480,7 @@ class wpcasldapuser
 				'last_name' => $this->data[0]['sn'][0],
 				'role' => $userrole,
 				'nickname' => $this->data[0]['cn'][0],
-				'user_nicename' => $this->data[0]['uid'][0]
+				'user_nicename' => $usernicename
 			);
 		}
 		else 
