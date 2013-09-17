@@ -3,7 +3,7 @@
 Plugin Name: WordPress CAS Client
 Plugin URI: https://github.com/BellevueCollege/wordpress-cas-client
 Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.2.0.0
+Version: 1.2.1.0
 Author: Bellevue College
 Author URI: http://www.bellevuecollege.edu
 License: GPL2
@@ -461,6 +461,8 @@ class wpcasldapuser
 		if (isset($this->data[0]['uid'][0]) || isset($this->data[0]['employeeid'][0])) // updating the if to have employeeid check also
 		{
 			$userrole = "";
+			$usernicename = sanitize_title_with_dashes($this->data[0]['samaccountname'][0]);
+			//error_log("user nice name ".$usernicename);
 			//echo "<br/> user login".$this->data[0]['samaccountname'][0];
 			if($this->data[0]['employeeid'][0] != null)
 			{
@@ -478,7 +480,7 @@ class wpcasldapuser
 				'last_name' => $this->data[0]['sn'][0],
 				'role' => $userrole,
 				'nickname' => $this->data[0]['cn'][0],
-				'user_nicename' => $this->data[0]['uid'][0]
+				'user_nicename' => $usernicename
 			);
 		}
 		else 
