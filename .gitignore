@@ -1,2 +1,6 @@
 wpcasldap-conf.php
 cas-config.php
+
+# PhpStorm project files
+.idea/*
+

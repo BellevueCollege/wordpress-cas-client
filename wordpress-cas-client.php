@@ -656,7 +656,7 @@ function wpcasldap_options_page() {
 			<th scope="row">
 				<label>
 					<?php _e('CAS version', 'wpcasldap') ?>
-				</lable>
+				</label>
 			</th>
 
 			<td>
@@ -724,7 +724,7 @@ function wpcasldap_options_page() {
 				<th scope="row">
 					<label>
 						<?php _e('Add to Database','wpcasldap') ?>
-					</lable>
+					</label>
 				</th>
 
 				<td>
