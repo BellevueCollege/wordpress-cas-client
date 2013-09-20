@@ -316,8 +316,8 @@ function get_ldap_user($uid) {
 			$error = 'Failed to set protocol version to 3.';
 		} else {
 			//Connection made -- bind anonymously and get dn for username.
-			$ldaprdn  = $GLOBALS['ldapUser'];     // ldap rdn or dn
-			$ldappass = $GLOBALS['ldapPassword'];  // associated password
+			$ldaprdn  = $wpcasldap_use_options['ldapuser'];//$GLOBALS['ldapUser'];     // ldap rdn or dn
+			$ldappass = $wpcasldap_use_options['ldappassword'];//$GLOBALS['ldapPassword'];  // associated password
 			error_log("username :".$ldaprdn);
 			error_log("password :".$ldappass);
 			//echo "ldap user :".$ldaprdn ;
@@ -460,6 +460,7 @@ class wpcasldapuser
 		global $wpcasldap_use_options;
 		if (isset($this->data[0]['uid'][0]) || isset($this->data[0]['employeeid'][0])) // updating the if to have employeeid check also
 		{
+			error_log("potential bug uid :".$this->data[0]['uid'][0]);
 			$userrole = "";
 			$usernicename = sanitize_title_with_dashes($this->data[0]['samaccountname'][0]);
 			//error_log("user nice name ".$usernicename);
@@ -587,7 +588,9 @@ function wpcasldap_getoptions() {
 			'ldaphost' => $get_options_func('wpcasldap_ldaphost'),
 			'ldapport' => $get_options_func('wpcasldap_ldapport'),
 			'useldap' => $get_options_func('wpcasldap_useldap'),
-			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn')			
+			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn'),
+			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
+			'ldappassword' => $get_options_func('wpcasldap_ldappassword')
 		);
 	
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
@@ -844,6 +847,26 @@ function wpcasldap_options_page() {
 			</th>
 			<td>
 				<input type="text" size="50" name="wpcasldap_ldapbasedn" id="ldap_basedn_inp" value="<?php echo $optionarray_def['ldapbasedn']; ?>" />
+			</td>
+		</tr>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('LDAP User','wpcasldap') ?>
+				</label>
+			</th>
+			<td>
+				<input type="text"  name="wpcasldap_ldapuser" id="ldap_user_inp" value="<?php echo $optionarray_def['ldapuser']; ?>" />
+			</td>
+		</tr>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('LDAP Password','wpcasldap') ?>
+				</label>
+			</th>
+			<td>
+				<input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" value="<?php echo $optionarray_def['ldappassword']; ?>" />
 			</td>
 		</tr>
         <?php endif; ?>
