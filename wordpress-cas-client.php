@@ -42,8 +42,9 @@ License: GPL2
 */
 
 
-if (file_exists( dirname(__FILE__).'/config.php' ) ) 
-	include_once( dirname(__FILE__).'/config.php' ); // attempt to fetch the optional config file
+if (file_exists( dirname(__FILE__).'/config.php' ) )
+    /** @noinspection PhpIncludeInspection */
+    include_once( dirname(__FILE__).'/config.php' ); // attempt to fetch the optional config file
 
 if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
@@ -297,7 +298,7 @@ function wpcasldap_nowpuser($newuserid) {
 
 function get_ldap_user($uid) {
 	global $wpcasldap_use_options;
-	$ds = ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);//ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);
+	$ds = ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);
 	error_log("host :".$wpcasldap_use_options['ldaphost']);
 	error_log("port :".$wpcasldap_use_options['ldapport']);
 	//Can't connect to LDAP.
@@ -498,10 +499,8 @@ class wpcasldapuser
 function wpcasldap_register_settings() {
 	global $wpcasldap_options;
 	
-	$options = array('email_suffix', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap');
-
-
-
+	$options = array('email_suffix', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path',
+                     'useradd', 'userrole', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword');
 
 	foreach ($options as $o) {
 		if (!isset($wpcasldap_options[$o])) {
@@ -592,12 +591,15 @@ function wpcasldap_getoptions() {
 			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
 			'ldappassword' => $get_options_func('wpcasldap_ldappassword')
 		);
-	
+
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
+    {
 		foreach ($wpcasldap_options as $key => $val) {
-			$out[$key] = $val;	
+			$out[$key] = $val;
 		}
-		error_log("OUT :".print_r($out,true));
+    }
+
+    error_log("OUT :".print_r($out,true));
 	return $out;
 }
 
