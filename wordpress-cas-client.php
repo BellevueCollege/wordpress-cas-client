@@ -52,11 +52,16 @@ if (file_exists( dirname(__FILE__).'/config.php' ) )
 if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
 
+
 if (file_exists( dirname(__FILE__).'/cas-password-encryption.php' ) ) 
 	include_once( dirname(__FILE__).'/cas-password-encryption.php' ); 
 
 // helps separate debug output
 debug_log("================= Executing wordpress-cas-client.php ===================\n");
+
+if (file_exists( dirname(__FILE__).'/tab-settings.php' ) ) 
+	include_once( dirname(__FILE__).'/tab-settings.php' ); // attempt to fetch the optional config file
+
 
 define("CAPABILITY","edit_themes");
 define("CAS_DEFAULT_PORT",'443');
@@ -540,8 +545,11 @@ class wpcasldapuser
 function wpcasldap_register_settings() {
 	global $wpcasldap_options;
 	
-	$options = array('email_suffix', 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path',
-                     'useradd', 'userrole', 'ldapuri', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword');
+
+	$options = array('email_suffix', 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldapuri', 'ldaphost',
+	 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword', 'casorldap_attribute', 'casatt_name', 'casatt_operator', 'casatt_user_value_to_compare', 'casatt_wp_role', 
+	 'casatt_wp_site', 'ldap_query', 'ldap_operator', 'ldap_user_value_to_compare', 'ldap_wp_role', 'ldap__wp_site');
+
 
 	foreach ($options as $o) {
 		if (!isset($wpcasldap_options[$o])) {
@@ -696,8 +704,21 @@ $ldapPassword = $ldapPassword ? $ldapPassword : ""; // if the  decrypt function 
 			'ldapport' => $ldap_port,// $get_options_func('wpcasldap_ldapport'),
 			'useldap' => $get_options_func('wpcasldap_useldap'),
 			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn'),
+
 			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
-			'ldappassword' => $ldapPassword
+			'ldappassword' => $ldapPassword		
+			'casorldap_attribute' => $get_options_func('wpcasldap_casorldap_attribute'),
+			'casatt_name' => $get_options_func('wpcasldap_casatt_name'),
+			'casatt_operator' => $get_options_func('wpcasldap_casatt_operator'),
+			'casatt_user_value_to_compare' => $get_options_func('wpcasldap_casatt_user_value_to_compare'),
+			'casatt_wp_role' => $get_options_func('wpcasldap_casatt_wp_role'),
+			'casatt_wp_site' => $get_options_func('wpcasldap_casatt_wp_site'),
+			'ldap_query' => $get_options_func('wpcasldap_ldap_query'),
+			'ldap_operator' => $get_options_func('wpcasldap_ldap_operator'),
+			'ldap_user_value_to_compare' => $get_options_func('wpcasldap_ldap_user_value_to_compare'),
+			'ldap_wp_role' => $get_options_func('wpcasldap_ldap_wp_role'),
+			'ldap__wp_site' => $get_options_func('wpcasldap_ldap_wp_site'),
+
 		);
 
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
