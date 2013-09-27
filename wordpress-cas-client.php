@@ -308,6 +308,7 @@ function get_ldap_user($uid) {
 	$ds = ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);
 	error_log("host :".$wpcasldap_use_options['ldaphost']);
 	error_log("port :".$wpcasldap_use_options['ldapport']);
+	error_log("resource :".$ds);
 	//Can't connect to LDAP.
 	if(!$ds) {
 		$error = 'Error in contacting the LDAP server.';
@@ -333,6 +334,7 @@ function get_ldap_user($uid) {
 			//$bind = @ldap_bind($ds);
 			//Check to make sure we're bound.
 			if(!$bind) {
+				error_log("bind error :".$bind);
 				$error = 'Anonymous bind to LDAP failed.';
 				echo "\nERROR: ".$error;
 				//exit();
@@ -634,8 +636,8 @@ if(isset($ldap_uri_components))
 	else
 		$ldap_port = LDAP_DEFAULT_PORT;
 }
-//error_log("scheme :".$ldap_uri_components['scheme']);
-//error_log("hostname :".$ldap_host);
+error_log("scheme :".$ldap_uri_components['scheme']);
+error_log("hostname :".$ldap_host);
 //error_log("port :".$ldap_port);
 
 
@@ -743,11 +745,20 @@ function wpcasldap_options_page() {
 				<td>
 					<?php
 						$casPath = $optionarray_def['include_path'];
-						if(!isset($optionarray_def['include_path']) || empty($optionarray_def['include_path']))
+						error_log("cas path :".$casPath);
+						if(!isset($casPath) || empty($casPath))
 						{
 							if(file_exists( DEFAULT_CASFILE_PATH ))
 							{
 								$casPath = DEFAULT_CASFILE_PATH ;
+								if(is_multisite())
+								{
+									 update_site_option('wpcasldap_include_path',$casPath);
+								}
+								else
+								{
+									update_option('wpcasldap_include_path',$casPath);
+								}
 							}
 						}
 					?>
