@@ -54,6 +54,13 @@ if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) )
 	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
 
 define("CAPABILITY","edit_themes");
+define("CAS_DEFAULT_PORT",'443');
+define("CAS_DEFAULT_PATH","/");
+define("SCHEME","https://");
+define("LDAP_SCHEME","ldap://");
+define("LDAP_DEFAULT_PORT",'389');
+define("LDAPS_DEFAULT_PORT", '636');
+define("DEFAULT_CASFILE_PATH", dirname(__FILE__).'/CAS/CAS.php');
 // This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
 global $get_options_func ;
 $get_options_func = "get_option";
@@ -196,7 +203,7 @@ class wpCASLDAP {
 				// the CAS user _does_not_have_ a WP account
 				if (function_exists( 'wpcasldap_nowpuser' ) && $wpcasldap_use_options['useradd'] == 'yes')
 				{
-					error_log("check if die3");
+					//error_log("check if die3");
 					wpcasldap_nowpuser( phpCAS::getUser() );
 				}
 					
@@ -252,7 +259,7 @@ function wpcasldap_nowpuser($newuserid) {
 		$newuser = get_ldap_user($newuserid);
 		
 		//echo "<pre>";print_r($newuser);echo "</pre>";
-		error_log("new user value :".$newuserid);
+		//error_log("new user value :".$newuserid);
 		//exit();
 		if($newuser)
 			$userdata = $newuser->get_user_data();
@@ -275,7 +282,7 @@ function wpcasldap_nowpuser($newuserid) {
 	{	
 		$user_id = wp_insert_user( $userdata );
 		if ( is_wp_error( $user_id ) ) {
-			error_log("inserting a user in wp failed");
+			//error_log("inserting a user in wp failed");
 	   		$error_string = $user_id->get_error_message();
 	   		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
 	   		return;
@@ -593,18 +600,77 @@ function wpcasldap_options_page_add() {
 function wpcasldap_getoptions() {
 	global $wpcasldap_options;
 	global $get_options_func;
+	//Parse the url to retrieve server_name, server_port and path
+	$cas_server = $get_options_func('wpcasldap_casserver');
+	$componentsOfUrl = parse_cas_url($cas_server);
+	error_log("url componenets :".print_r($componentsOfUrl,true));
+	$host = "";
+	$port = "";
+	$path = "";
+	if($componentsOfUrl)
+	{
+		if(isset($componentsOfUrl['host']))
+		{
+			$host = $componentsOfUrl['host'];
+		}
+		
+		if(isset($componentsOfUrl['port']))
+			$port = $componentsOfUrl['port'];
+		else
+			$port = CAS_DEFAULT_PORT;
+
+		if(isset($componentsOfUrl['path']))
+			$path = $componentsOfUrl['path'];
+		else
+			$path = CAS_DEFAULT_PATH;
+	}
+
+//error_log("hostname :".$host);
+//error_log("port :".$port);
+//error_log("path :".$path);
+
+//Parse ldap URI to retrieve LDAP Host and LDAP Port
+$ldap_uri = $get_options_func('wpcasldap_ldapuri');
+$ldap_host = "";
+$ldap_port = "";
+$ldap_uri_components = parse_ldap_uri($ldap_uri);
+if(isset($ldap_uri_components))
+{
+	if(isset($ldap_uri_components['host']))
+	{
+		$ldap_host = $ldap_uri_components['host'];
+	}
+
+	if(isset($ldap_uri_components['port']))
+		$ldap_port = $ldap_uri_components['port'];
+	else if(isset($ldap_uri_components['scheme']))
+	{
+		if(strtolower($ldap_uri_components['scheme']) == 'ldaps')
+			$ldap_port = LDAPS_DEFAULT_PORT;
+		else if(strtolower($ldap_uri_components['scheme']) == 'ldap')
+			$ldap_port = LDAP_DEFAULT_PORT;
+	}
+	else
+		$ldap_port = LDAP_DEFAULT_PORT;
+}
+//error_log("scheme :".$ldap_uri_components['scheme']);
+//error_log("hostname :".$ldap_host);
+//error_log("port :".$ldap_port);
+
 
 	$out = array (
 			'email_suffix' => $get_options_func('wpcasldap_email_suffix'),
 			'cas_version' => $get_options_func('wpcasldap_cas_version'),
 			'include_path' => $get_options_func('wpcasldap_include_path'),
-			'server_hostname' => $get_options_func('wpcasldap_server_hostname'),
-			'server_port' => $get_options_func('wpcasldap_server_port'),
-			'server_path' => $get_options_func('wpcasldap_server_path'),
+			'casserver' => $cas_server, //$get_options_func('wpcasldap_casserver'),
+			'server_hostname' => $host,//$get_options_func('wpcasldap_server_hostname'),
+			'server_port' => $port,//$get_options_func('wpcasldap_server_port'),
+			'server_path' => $path,//$get_options_func('wpcasldap_server_path'),
 			'useradd' => $get_options_func('wpcasldap_useradd'),
 			'userrole' => $get_options_func('wpcasldap_userrole'),
-			'ldaphost' => $get_options_func('wpcasldap_ldaphost'),
-			'ldapport' => $get_options_func('wpcasldap_ldapport'),
+			'ldapuri' => $ldap_uri,//$get_options_func('wpcasldap_ldapuri'),
+			'ldaphost' => $ldap_host, //$get_options_func('wpcasldap_ldaphost'),
+			'ldapport' => $ldap_port,// $get_options_func('wpcasldap_ldapport'),
 			'useldap' => $get_options_func('wpcasldap_useldap'),
 			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn'),
 			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
@@ -618,8 +684,41 @@ function wpcasldap_getoptions() {
 		}
     }
 
-    error_log("OUT :".print_r($out,true));
+    //error_log("OUT :".print_r($out,true));
 	return $out;
+}
+
+function parse_ldap_uri(&$ldap_uri)
+{
+	$components =  parse_url($ldap_uri);
+	if(empty($components['host']) && !empty($components['path']))
+	{
+		error_log("path :".$components['path']);
+		$ldap_uri = LDAP_SCHEME.$ldap_uri;
+		error_log("cas url :".$ldap_uri);
+		$components =  parse_url($ldap_uri);
+		error_log("components after editing uri :".print_r($components,true));
+	}
+	return $components;
+}
+
+
+
+function parse_cas_url(&$cas_server_url)
+{
+	$components =  parse_url($cas_server_url);
+	if($components)
+	{
+		if(empty($components['host']) && !empty($components['path']))
+		{
+			error_log("path :".$components['path']);
+			$cas_server_url = SCHEME.$cas_server_url;
+			error_log("cas url :".$cas_server_url);
+			$components =  parse_url($cas_server_url);
+			error_log("componenets after editing url :".print_r($components,true));
+		}
+	}
+	return $components;
 }
 
 function wpcasldap_options_page() {
@@ -661,7 +760,17 @@ function wpcasldap_options_page() {
 				</th>
 
 				<td>
-					<input type="text" size="80" name="wpcasldap_include_path" id="include_path_inp" value="<?php echo $optionarray_def['include_path']; ?>" />
+					<?php
+						$casPath = $optionarray_def['include_path'];
+						if(!isset($optionarray_def['include_path']) || empty($optionarray_def['include_path']))
+						{
+							if(file_exists( DEFAULT_CASFILE_PATH ))
+							{
+								$casPath = DEFAULT_CASFILE_PATH ;
+							}
+						}
+					?>
+					<input type="text" size="80" name="wpcasldap_include_path" id="include_path_inp" value="<?php echo $casPath; ?>" />
 				</td>
 			</tr>
 
@@ -669,12 +778,29 @@ function wpcasldap_options_page() {
 	<?php endif; ?>
     
     <?php if (!isset($wpcasldap_options['cas_version']) ||
-			!isset($wpcasldap_options['server_hostname']) ||
-			!isset($wpcasldap_options['server_port']) ||
-			!isset($wpcasldap_options['server_path']) ) : ?>
-	<h4><?php _e('phpCAS::client() parameters', 'wpcasldap') ?></h4>
+			//!isset($wpcasldap_options['server_hostname']) ||
+			//!isset($wpcasldap_options['server_port']) ||
+			//!isset($wpcasldap_options['server_path'])
+			 !isset($wpcasldap_options['casserver'])) : ?>
+	<h4><?php _e('CAS Server', 'wpcasldap') ?></h4>
 	<table class="form-table">
-	    <?php if (!isset($wpcasldap_options['cas_version'])) : ?>
+
+	    
+	<?php if (!isset($wpcasldap_options['casserver'])) : ?>
+        <tr valign="top">
+			<th scope="row">
+				<label>
+					<?php _e('CAS Server URI', 'wpcasldap') ?>
+				</label>
+			</th>
+
+			<td>
+				<input type="text"  name="wpcasldap_casserver" size="50" id="casserver_inp" value="<?php echo $optionarray_def['casserver']; ?>" />
+			</td>
+		</tr>
+	<?php endif; ?>
+
+    <?php if (!isset($wpcasldap_options['cas_version'])) : ?>
 
 		<tr valign="top">
 			<th scope="row">
@@ -688,48 +814,6 @@ function wpcasldap_options_page() {
                     <option value="2.0" <?php echo ($optionarray_def['cas_version'] == '2.0')?'selected':''; ?>>CAS_VERSION_2_0</option>
                     <option value="1.0" <?php echo ($optionarray_def['cas_version'] == '1.0')?'selected':''; ?>>CAS_VERSION_1_0</option>
                 </select>
-			</td>
-		</tr>
-        <?php endif; ?>
-
-	    <?php if (!isset($wpcasldap_options['server_hostname'])) : ?>
-		<tr valign="top">
-			<th scope="row">
-				<label>
-					<?php _e('Server Hostname', 'wpcasldap') ?>
-				</label>
-			</th>
-
-			<td>
-				<input type="text" size="50" name="wpcasldap_server_hostname" id="server_hostname_inp" value="<?php echo $optionarray_def['server_hostname']; ?>" />
-			</td>
-		</tr>
-        <?php endif; ?>
-
-	    <?php if (!isset($wpcasldap_options['server_port'])) : ?>
-		<tr valign="top">
-			<th scope="row">
-				<label>
-					<?php _e('Server Port','wpcasldap') ?>
-				</label>
-			</th>
-
-			<td>
-				<input type="text" size="50" name="wpcasldap_server_port" id="server_port_inp" value="<?php echo $optionarray_def['server_port']; ?>" />
-			</td>
-		</tr>
-        <?php endif; ?>
-
-	    <?php if (!isset($wpcasldap_options['server_path'])) : ?>
-		<tr valign="top">
-			<th scope="row">
-				<label>
-					<?php _e('Server Path','wpcasldap') ?>
-				</label>
-			</th>
-
-			<td>
-				<input type="text" size="50" name="wpcasldap_server_path" id="server_path_inp" value="<?php echo $optionarray_def['server_path']; ?>" />
 			</td>
 		</tr>
         <?php endif; ?>
@@ -827,38 +911,26 @@ function wpcasldap_options_page() {
     
     <?php if (function_exists('ldap_connect')) : ?>
     <?php if (!isset($wpcasldap_options['ldapbasedn']) ||
-			!isset($wpcasldap_options['ldapport']) ||
-			!isset($wpcasldap_options['ldaphost']) ) : ?>
+			//!isset($wpcasldap_options['ldapport']) ||
+			!isset($wpcasldap_options['ldapuri']) ) : ?>
+
 	<h4><?php _e('LDAP parameters','wpcasldap') ?></h4>
 
 	<table class="form-table">
-	    <?php if (!isset($wpcasldap_options['ldaphost'])) : ?>
+		<?php if (!isset($wpcasldap_options['ldapuri'])) : ?>
 		<tr valign="top">
 			<th scope="row">
 				<label>
-					<?php _e('LDAP Host','wpcasldap') ?>
+					<?php _e('LDAP URI','wpcasldap') ?>
 				</label>
 			</th>
 
 			<td>
-				<input type="text" size="50" name="wpcasldap_ldaphost" id="ldap_host_inp" value="<?php echo $optionarray_def['ldaphost']; ?>" />
+				<input type="text" size="50" name="wpcasldap_ldapuri" id="ldap_uri_inp" value="<?php echo $optionarray_def['ldapuri']; ?>" />
 			</td>
 		</tr>
         <?php endif; ?>
-	    <?php if (!isset($wpcasldap_options['ldapport'])) : ?>
-		<tr valign="top">
-			<th scope="row">
-				<label>
-					<?php _e('LDAP Port','wpcasldap') ?>
-				</label>
-			</th>
-
-			<td>
-				<input type="text" size="50" name="wpcasldap_ldapport" id="ldap_port_inp" value="<?php echo $optionarray_def['ldapport']; ?>"  />
-			</td>
-		</tr>
-        <?php endif; ?>
-
+	
 	    <?php if (!isset($wpcasldap_options['ldapbasedn'])) : ?>
 		<tr valign="top">
 			<th scope="row">
@@ -870,7 +942,10 @@ function wpcasldap_options_page() {
 				<input type="text" size="50" name="wpcasldap_ldapbasedn" id="ldap_basedn_inp" value="<?php echo $optionarray_def['ldapbasedn']; ?>" />
 			</td>
 		</tr>
-		<tr valign="top">
+        <?php endif; ?>
+
+         <?php if (!isset($wpcasldap_options['ldapuser'])) : ?>
+        <tr valign="top">
 			<th scope="row">
 				<label>
 					<?php _e('LDAP User','wpcasldap') ?>
@@ -880,6 +955,9 @@ function wpcasldap_options_page() {
 				<input type="text"  name="wpcasldap_ldapuser" id="ldap_user_inp" value="<?php echo $optionarray_def['ldapuser']; ?>" />
 			</td>
 		</tr>
+		 <?php endif; ?>
+
+		 <?php if (!isset($wpcasldap_options['ldappassword'])) : ?>
 		<tr valign="top">
 			<th scope="row">
 				<label>
@@ -890,7 +968,8 @@ function wpcasldap_options_page() {
 				<input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" value="<?php echo $optionarray_def['ldappassword']; ?>" />
 			</td>
 		</tr>
-        <?php endif; ?>
+		 <?php endif; ?>
+
 	</table>
     <?php endif; ?>
     <?php endif; ?>
