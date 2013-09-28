@@ -41,7 +41,6 @@ License: GPL2
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	 02111-1307	 USA 
 */
 
-debug_log("\n=====================================================================\n");
 // include common functions, etc.
 include_once( dirname(__FILE__)."/utilities.php");
 include_once(dirname(__FILE__) . "/ldapManager.php");
@@ -52,6 +51,9 @@ if (file_exists( dirname(__FILE__).'/config.php' ) )
 
 if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
+
+// helps separate debug output
+debug_log("\n=====================================================================\n");
 
 define("CAPABILITY","edit_themes");
 define("CAS_DEFAULT_PORT",'443');
@@ -328,8 +330,8 @@ function get_ldap_user($uid) {
             //echo "<h2>Connected</h2>";
 
             // Make sure the protocol is set to version 3
-            $ldapManager->SetOption($ldapManager->PROTOCOL_VERSION, 3);
-            if (!$ldapManager->SetOption($ldapManager->PROTOCOL_VERSION, 3)) {
+            $ldapManager->SetOption($ldapManager->OPT_PROTOCOL_VERSION, 3);
+            if (!$ldapManager->SetOption($ldapManager->OPT_PROTOCOL_VERSION, 3)) {
                 $error = 'Failed to set protocol version to 3.';
                 error_log("\n" . $error);
             } else {
