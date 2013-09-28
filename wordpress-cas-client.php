@@ -506,8 +506,8 @@ class wpcasldapuser
 function wpcasldap_register_settings() {
 	global $wpcasldap_options;
 	
-	$options = array('email_suffix', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path',
-                     'useradd', 'userrole', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword');
+	$options = array('email_suffix', 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path',
+                     'useradd', 'userrole', 'ldapuri', 'ldaphost', 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword');
 
 	foreach ($options as $o) {
 		if (!isset($wpcasldap_options[$o])) {
