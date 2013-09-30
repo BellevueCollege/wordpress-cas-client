@@ -31,7 +31,8 @@ function debug_log($message)
 {
   if (ENABLE_DEBUG_LOG)
   {
-    if (!error_log($message . "\n", 3, DEBUG_LOG_PATH))
+    $date = new DateTime();
+    if (!error_log("[".$date->format('Y-m-d H:i:s')."] ".$message . "\n", 3, DEBUG_LOG_PATH))
     {
       error_log("UNABLE TO WRITE TO DEBUG LOG (" . DEBUG_LOG_PATH . "): '" . $message . "'");
     }
