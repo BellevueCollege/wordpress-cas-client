@@ -29,6 +29,24 @@ if (file_exists( dirname(__FILE__).'/cas-password-encryption.php' ) )
 
 
 
+
+			$casorldap_attribute = $_POST['wpcasldap_casorldap_attribute'];	
+
+			//CAS Attributes
+			$casatt_name = $_POST['wpcasldap_casatt_name'];	
+			$casatt_operator = $_POST['wpcasldap_casatt_operator'];	
+			$casatt_user_value_to_compare = $_POST['wpcasldap_casatt_user_value_to_compare'];	
+			$casatt_wp_role = $_POST['wpcasldap_casatt_wp_role'];	
+			$casatt_wp_site = $_POST['wpcasldap_casatt_wp_site'];	
+
+			
+			//LDAP Attributes
+			$ldap_query = $_POST['wpcasldap_ldap_query'];
+			$ldap_operator = $_POST['wpcasldap_ldap_operator'];
+			$ldap_user_value_to_compare = $_POST['wpcasldap_ldap_user_value_to_compare'];
+			$ldap_wp_role = $_POST['wpcasldap_ldap_wp_role'];
+			$ldap_wp_site = $_POST['wpcasldap_ldap_wp_site'];
+
 			 update_site_option('wpcasldap_cas_version',$cas_version);
 			 update_site_option('wpcasldap_include_path',$include_path);
 			  update_site_option('wpcasldap_casserver',$casserver);
@@ -44,8 +62,21 @@ if (file_exists( dirname(__FILE__).'/cas-password-encryption.php' ) )
 			 update_site_option('wpcasldap_ldapbasedn',$ldapbasedn);
 			 update_site_option('wpcasldap_ldapuser',$ldapuser);
 
-
 			 update_site_option('wpcasldap_ldappassword',$ldappassword);
+
+			 update_site_option('wpcasldap_casorldap_attribute',$casorldap_attribute);
+			 update_site_option('wpcasldap_casatt_name',$casatt_name);
+			 update_site_option('wpcasldap_casatt_operator',$casatt_operator);
+			 update_site_option('wpcasldap_casatt_user_value_to_compare',$casatt_user_value_to_compare);
+			 update_site_option('wpcasldap_casatt_wp_role',$casatt_wp_role);
+			 update_site_option('wpcasldap_casatt_wp_site',$casatt_wp_site);
+
+			 update_site_option('wpcasldap_ldap_query',$ldap_query);
+			 update_site_option('wpcasldap_ldap_operator',$ldap_operator);
+			 update_site_option('wpcasldap_ldap_user_value_to_compare',$ldap_user_value_to_compare);
+			 update_site_option('wpcasldap_ldap_wp_role',$ldap_wp_role);
+			 update_site_option('wpcasldap_ldap_wp_site',$ldap_wp_site);
+			 
 		}
 	}
 ?>
