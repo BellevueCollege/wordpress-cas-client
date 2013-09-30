@@ -769,11 +769,20 @@ function wpcasldap_options_page() {
 				<td>
 					<?php
 						$casPath = $optionarray_def['include_path'];
+						debug_log("cas path :".$casPath);
 						if(!isset($optionarray_def['include_path']) || empty($optionarray_def['include_path']))
 						{
 							if(file_exists( DEFAULT_CASFILE_PATH ))
 							{
 								$casPath = DEFAULT_CASFILE_PATH ;
+								if(is_multisite())
+								{
+									 update_site_option('wpcasldap_include_path',$casPath);
+							    }
+								else
+								{
+									update_option('wpcasldap_include_path',$casPath);
+						        }
 							}
 						}
 					?>
@@ -963,11 +972,6 @@ function wpcasldap_options_page() {
 			</td>
 		</tr>
 		 <?php endif; ?>
-
-
-		 <?php
-		 	//error_log("password decrypted :".$optionarray_def['ldappassword']);
-		 ?>
 
 		 <?php if (!isset($wpcasldap_options['ldappassword'])) : ?>
 		<tr valign="top">
