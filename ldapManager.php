@@ -15,40 +15,46 @@ include_once(dirname(__FILE__) . "/utilities.php");
 class ldapManager
 {
   /**
-   *
+   * The URL scheme to use for unencrypted LDAP connections
    */
   const URI_SCHEME = "ldap";
   /**
-   *
+   * The URL scheme to use for encrypted SSL LDAP connections
    */
   const SSL_URI_SCHEME = "ldaps";
   /**
-   *
+   * The default port to use for unencrypted LDAP connections
    */
   const DEFAULT_PORT = "389";
   /**
-   *
+   * The default port to use for encrypted SSL LDAP connections
    */
   const SSL_DEFAULT_PORT = "636";
   /**
-   *
+   * Option flag for setting the protocol version.
    */
   const OPT_PROTOCOL_VERSION = LDAP_OPT_PROTOCOL_VERSION;
 
   // fields
   /**
+   * The LDAP connection
+   *
    * @var null
    */
   private $connection = null;
 
   //  unset properties
   /**
+   * The URL to use for LDAP connections.
+   *
    * @var string
    */
   public $Uri = "";
 
   // interface methods
   /**
+   * Connects to an LDAP server.
+   *
    * @param string $uri
    *
    * @return null|resource
@@ -74,21 +80,22 @@ class ldapManager
     try
     {
       $uri_parts = ldapManager::ParseUri($uri);
-      $port = $uri["port"];
-      $scheme = $uri_parts["scheme"];
+      $scheme = empty($uri_parts["scheme"]) ? ldapManager::URI_SCHEME : $uri_parts["scheme"];
 
       if ($scheme == ldapManager::SSL_URI_SCHEME)
       {
-        debug_log("LDAPS detected.");
-        $port = $this->ValidateAndSetPort($port, ldapManager::SSL_DEFAULT_PORT);
+        debug_log("LDAPS detected. (scheme == '$scheme')");
+        $port = $this->SetPort($uri_parts, ldapManager::SSL_DEFAULT_PORT);
       }
       else
       {
         debug_log("LDAPS not specified - establishing UNENCRYPTED connection.");
-        $port = $this->ValidateAndSetPort($port, ldapManager::DEFAULT_PORT);
+        $port = $this->SetPort($uri_parts, ldapManager::DEFAULT_PORT);
       }
 
-      $connection_url = http_build_url("", $uri_parts, HTTP_URL_STRIP_PORT);
+// Wordpress install complains that http_build_url() is not recognized. 9/30/2013 - shawn.south@bellevuecollege.edu
+//      $connection_url = http_build_url("", $uri_parts, HTTP_URL_STRIP_PORT);
+      $connection_url = $this->BuildUrl($scheme, $uri_parts);
       debug_log("Connection URL: '" . $connection_url . "' on port [" . $port . "]");
 
       $this->connection = ldap_connect($connection_url, $port);
@@ -103,7 +110,7 @@ class ldapManager
   }
 
   /**
-   *
+   * Closes an LDAP connection.
    */
   public function Close()
   {
@@ -118,6 +125,8 @@ class ldapManager
   }
 
   /**
+   * Binds an LDAP connection by logging in.
+   *
    * @param $login
    * @param $password
    *
@@ -134,6 +143,8 @@ class ldapManager
   }
 
   /**
+   * Sets an LDAP connection option.
+   *
    * @param $flag
    * @param $value
    *
@@ -150,6 +161,8 @@ class ldapManager
   }
 
   /**
+   * Performs an LDAP query.
+   *
    * @param $base_dn
    * @param $filter
    * @param $attribute_array
@@ -167,6 +180,8 @@ class ldapManager
   }
 
   /**
+   * Parses restules returned from a call to Search()
+   *
    * @param $search_results
    *
    * @return array|null
@@ -182,39 +197,71 @@ class ldapManager
   }
 
   /**
+   * Parses a URI into its component parts.
+   *
    * @param $uri
    *
    * @return mixed
    */
   public static function ParseUri(&$uri)
   {
+    debug_log("Parsing URI: '$uri'");
     $components = parse_url($uri);
+    debug_log("Parsed URI components: " . print_r($components, true));
+
     if (empty($components['host']) && !empty($components['path']))
     {
-      debug_log("path :" . $components['path']);
-      $ldap_uri = ldapManager::URI_SCHEME . $uri;
-      debug_log("cas url :" . $ldap_uri);
+      debug_log("Empty 'host', but non-empty 'path' (".$components['path'].")");
+
+      $ldap_uri = ldapManager::URI_SCHEME. "://". $uri;
+      debug_log("url: " . $ldap_uri);
+
       $components = parse_url($ldap_uri);
-      debug_log("components after editing uri :" . print_r($components, true));
+      debug_log("components after editing uri:" . print_r($components, true));
     }
     return $components;
   }
 
+  // Private methods
+
   /**
-   * @param $port
+   * Sets the connection port.
+   *
+   * @param $uri_parts
    * @param $defaultPort
    *
+   * @internal param $port
    * @return string
    */
-  private function ValidateAndSetPort($port, $defaultPort)
+  private function SetPort($uri_parts, $defaultPort)
   {
+    if(empty($uri_parts["port"]))
+    {
+      return $defaultPort;
+    }
+    $port = $uri_parts["port"];
+
     $is_valid = is_numeric($port) || intval($port) > 0;
 
     if (!$is_valid)
     {
-      debug_log("No port specified - using default (" . $port . ")");
+      debug_log("No port specified - using default (" . $defaultPort . ")");
       return $defaultPort;
     }
     return $port;
+  }
+
+  /**
+   * Constructs a URL from its component parts.
+   *
+   * @param $scheme
+   * @param $uri_parts
+   *
+   * @return string
+   */
+  public function BuildUrl($scheme, $uri_parts)
+  {
+    $hostpath = empty($uri_parts["host"]) ? $uri_parts["path"] : $uri_parts["host"] . (empty($uri_parts["path"]) ? "" : $uri_parts["path"]);
+    return $scheme . "://" . $hostpath;
   }
 }

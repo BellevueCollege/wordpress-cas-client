@@ -53,15 +53,12 @@ if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) )
 	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
 
 // helps separate debug output
-debug_log("\n=====================================================================\n");
+debug_log("================= Executing wordpress-cas-client.php ===================\n");
 
 define("CAPABILITY","edit_themes");
 define("CAS_DEFAULT_PORT",'443');
 define("CAS_DEFAULT_PATH","/");
 define("SCHEME","https://");
-define("LDAP_SCHEME","ldap://");
-define("LDAP_DEFAULT_PORT",'389');
-define("LDAPS_DEFAULT_PORT", '636');
 define("DEFAULT_CASFILE_PATH", dirname(__FILE__).'/CAS/CAS.php');
 // This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
 global $get_options_func ;
@@ -311,13 +308,16 @@ function wpcasldap_nowpuser($newuserid) {
 
 function get_ldap_user($uid) {
 	global $wpcasldap_use_options;
+  global $get_options_func;
     global $ldapManager;
     debug_log("host :" . $wpcasldap_use_options['ldaphost']);
     debug_log("port :" . $wpcasldap_use_options['ldapport']);
 
     try
     {
-        $ds = $ldapManager->Connect($wpcasldap_use_options['ldaphost'], $wpcasldap_use_options['ldapport']);
+        $ldap_uri = $get_options_func('wpcasldap_ldapuri');
+
+        $ds = $ldapManager->Connect($ldap_uri);
         if (!$ds) {
             //Can't connect to LDAP.
             $error = 'Error in contacting the LDAP server.';
@@ -637,7 +637,7 @@ function wpcasldap_getoptions() {
 $ldap_uri = $get_options_func('wpcasldap_ldapuri');
 $ldap_host = "";
 $ldap_port = "";
-$ldap_uri_components = parse_ldap_uri($ldap_uri);
+$ldap_uri_components = $ldapManager->ParseUri($ldap_uri);
 if(isset($ldap_uri_components))
 {
 	if(isset($ldap_uri_components['host']))
@@ -650,12 +650,12 @@ if(isset($ldap_uri_components))
 	else if(isset($ldap_uri_components['scheme']))
 	{
 		if(strtolower($ldap_uri_components['scheme']) == 'ldaps')
-			$ldap_port = LDAPS_DEFAULT_PORT;
+			$ldap_port = ldapManager::SSL_DEFAULT_PORT;
 		else if(strtolower($ldap_uri_components['scheme']) == 'ldap')
-			$ldap_port = LDAP_DEFAULT_PORT;
+			$ldap_port = ldapManager::DEFAULT_PORT;
 	}
 	else
-		$ldap_port = LDAP_DEFAULT_PORT;
+		$ldap_port = ldapManager::DEFAULT_PORT;
 }
 //error_log("scheme :".$ldap_uri_components['scheme']);
 //error_log("hostname :".$ldap_host);
@@ -691,22 +691,6 @@ if(isset($ldap_uri_components))
     //error_log("OUT :".print_r($out,true));
 	return $out;
 }
-
-function parse_ldap_uri(&$ldap_uri)
-{
-	$components =  parse_url($ldap_uri);
-	if(empty($components['host']) && !empty($components['path']))
-	{
-		error_log("path :".$components['path']);
-		$ldap_uri = LDAP_SCHEME.$ldap_uri;
-		error_log("cas url :".$ldap_uri);
-		$components =  parse_url($ldap_uri);
-		error_log("components after editing uri :".print_r($components,true));
-	}
-	return $components;
-}
-
-
 
 function parse_cas_url(&$cas_server_url)
 {
