@@ -983,7 +983,7 @@ function wpcasldap_options_page() {
 			<td>
 				<input type="button" name="reset" id="reset" onclick="showPasswordField()" size="20" value="Reset">
 				<input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" style="display:none;" disabled/> 
-				<!-- <input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" value="<?php echo $optionarray_def['ldappassword']; ?>" /> -->
+				
 			</td>
 		</tr>
 		 <?php endif; ?>
