@@ -81,14 +81,14 @@ function wpcasclient_decrypt($data , $cipher_list, $key = SECURE_AUTH_KEY, $salt
 	    $output = base64_decode(substr($data, $splitpoint)); //+1 drops the '$' char
 
 	    if ($cipher_key != DEFAULT_CIPHER_KEY ) {
-	      $encrypt_descript = mcrypt_module_open($cipher_list[$cipher_key], '', MODE, '');
-	      $ivsize = mcrypt_enc_get_iv_size($encrypt_descript);
+	      $encrypt_descript = @mcrypt_module_open($cipher_list[$cipher_key], '', MODE, '');
+	      $ivsize = @mcrypt_enc_get_iv_size($encrypt_descript);
 	      $iv = substr($output, 0, $ivsize);
-	      $key = substr(hash(HASH_FUNC, $key), 0, mcrypt_enc_get_key_size($encrypt_descript));
+	      $key = substr(hash(HASH_FUNC, $key), 0, @mcrypt_enc_get_key_size($encrypt_descript));
 	      $output = substr($output, $ivsize);
-	      mcrypt_generic_init($encrypt_descript, $key, $iv);
-	      $output = mdecrypt_generic($encrypt_descript, $output);
-	      mcrypt_generic_deinit($encrypt_descript);
+	      @mcrypt_generic_init($encrypt_descript, $key, $iv);
+	      $output = @mdecrypt_generic($encrypt_descript, $output);
+	      @mcrypt_generic_deinit($encrypt_descript);
 		}
 	}
 
