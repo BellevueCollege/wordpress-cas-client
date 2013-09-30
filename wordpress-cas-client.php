@@ -330,8 +330,7 @@ function get_ldap_user($uid) {
             //echo "<h2>Connected</h2>";
 
             // Make sure the protocol is set to version 3
-            $ldapManager->SetOption($ldapManager->OPT_PROTOCOL_VERSION, 3);
-            if (!$ldapManager->SetOption($ldapManager->OPT_PROTOCOL_VERSION, 3)) {
+            if (!$ldapManager->SetOption(ldapManager::OPT_PROTOCOL_VERSION, 3)) {
                 $error = 'Failed to set protocol version to 3.';
                 error_log("\n" . $error);
             } else {
@@ -602,6 +601,7 @@ function wpcasldap_options_page_add() {
 function wpcasldap_getoptions() {
 	global $wpcasldap_options;
 	global $get_options_func;
+    global $ldapManager;
 	//Parse the url to retrieve server_name, server_port and path
 	$cas_server = $get_options_func('wpcasldap_casserver');
 	$componentsOfUrl = parse_cas_url($cas_server);
@@ -632,6 +632,8 @@ function wpcasldap_getoptions() {
 //error_log("path :".$path);
 
 //Parse ldap URI to retrieve LDAP Host and LDAP Port
+
+    $ldapManager->Uri = $get_options_func('wpcasldap_ldapuri');
 $ldap_uri = $get_options_func('wpcasldap_ldapuri');
 $ldap_host = "";
 $ldap_port = "";
