@@ -52,6 +52,9 @@ if (file_exists( dirname(__FILE__).'/config.php' ) )
 if (file_exists( dirname(__FILE__).'/network-settings-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/network-settings-ui.php' ); // attempt to fetch the optional config file
 
+if (file_exists( dirname(__FILE__).'/cas-password-encryption.php' ) ) 
+	include_once( dirname(__FILE__).'/cas-password-encryption.php' ); 
+
 // helps separate debug output
 debug_log("================= Executing wordpress-cas-client.php ===================\n");
 
@@ -59,6 +62,9 @@ define("CAPABILITY","edit_themes");
 define("CAS_DEFAULT_PORT",'443');
 define("CAS_DEFAULT_PATH","/");
 define("SCHEME","https://");
+define("LDAP_SCHEME","ldap://");
+define("LDAP_DEFAULT_PORT",'389');
+define("LDAPS_DEFAULT_PORT", '636');
 define("DEFAULT_CASFILE_PATH", dirname(__FILE__).'/CAS/CAS.php');
 // This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
 global $get_options_func ;
@@ -80,6 +86,9 @@ $form_action = "options.php";
 
 global $ldapManager;
 $ldapManager = new ldapManager();
+
+
+
 
 global $wpcasldap_options;
 if($wpcasldap_options)
@@ -340,6 +349,11 @@ function get_ldap_user($uid) {
                 debug_log("username :" . $ldaprdn);
                 debug_log("password :" . $ldappass);
                 //echo "ldap user :".$ldaprdn ;
+              if(empty($ldaprdn) || empty($ldappass))
+              {
+                echo "ERROR: LDAP Username or LDAP Password not configured correctly";
+                exit();
+              }
 
                 $bind = $ldapManager->Bind($ldaprdn, $ldappass);
                 //$bind = @ldap_bind($ds);
@@ -661,6 +675,11 @@ if(isset($ldap_uri_components))
 //error_log("hostname :".$ldap_host);
 //error_log("port :".$ldap_port);
 
+//get ldap password and decrypt it
+$ldapPassword = (string) $get_options_func('wpcasldap_ldappassword');
+
+$ldapPassword = wpcasclient_decrypt($ldapPassword , $GLOBALS['ciphers'])  ;
+$ldapPassword = $ldapPassword ? $ldapPassword : ""; // if the  decrypt function returns false thn set password to empty string
 
 	$out = array (
 			'email_suffix' => $get_options_func('wpcasldap_email_suffix'),
@@ -678,7 +697,7 @@ if(isset($ldap_uri_components))
 			'useldap' => $get_options_func('wpcasldap_useldap'),
 			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn'),
 			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
-			'ldappassword' => $get_options_func('wpcasldap_ldappassword')
+			'ldappassword' => $ldapPassword
 		);
 
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
@@ -945,6 +964,11 @@ function wpcasldap_options_page() {
 		</tr>
 		 <?php endif; ?>
 
+
+		 <?php
+		 	//error_log("password decrypted :".$optionarray_def['ldappassword']);
+		 ?>
+
 		 <?php if (!isset($wpcasldap_options['ldappassword'])) : ?>
 		<tr valign="top">
 			<th scope="row">
@@ -953,7 +977,9 @@ function wpcasldap_options_page() {
 				</label>
 			</th>
 			<td>
-				<input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" value="<?php echo $optionarray_def['ldappassword']; ?>" />
+				<input type="button" name="reset" id="reset" onclick="showPasswordField()" size="20" value="Reset">
+				<input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" style="display:none;" disabled/> 
+				<!-- <input type="password"  name="wpcasldap_ldappassword" id="ldap_password_inp" value="<?php echo $optionarray_def['ldappassword']; ?>" /> -->
 			</td>
 		</tr>
 		 <?php endif; ?>
@@ -968,3 +994,17 @@ function wpcasldap_options_page() {
 	</form>
 <?php
 }
+
+?>
+
+<script type="text/javascript">
+function showPasswordField()
+{
+	var buttonReset = document.getElementById("reset");
+	var ldapPasswordField = document.getElementById("ldap_password_inp");
+	ldapPasswordField.style.display = "";
+	 ldapPasswordField.disabled = false;
+	 buttonReset.style.display = "none";
+}
+</script>
+
