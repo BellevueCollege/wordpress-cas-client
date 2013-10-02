@@ -53,8 +53,10 @@ global $get_options_func ;
 //This global variable is defaulted to 'options.php' , but for network setting we want the form to submit to itself, so we will leave it empty
 global $form_action;
 
-include_once( dirname(__FILE__)."/utilities.php");
+include_once(dirname(__FILE__)."/utilities.php");
+include_once(dirname(__FILE__) . "/casManager.php");
 include_once(dirname(__FILE__) . "/ldapManager.php");
+include_once(dirname(__FILE__) . "/ldapUser.php");
 
 if (file_exists( dirname(__FILE__).'/config.php' ) )
     /** @noinspection PhpIncludeInspection */
@@ -73,9 +75,6 @@ debug_log("================= Executing wordpress-cas-client.php ================
 if (file_exists( dirname(__FILE__).'/cas-client-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/cas-client-ui.php' ); // attempt to fetch the optional config file
 
-
-
-
 $get_options_func = "get_option";
 updateSettings();
 	if(is_multisite())
@@ -88,12 +87,6 @@ updateSettings();
 	debug_log("version :". $get_options_func('wpcasldap_cas_version'));
 	debug_log("version :". $get_options_func('wpcasldap_server_hostname'));
 
-global $ldapManager;
-$ldapManager = new ldapManager();
-
-
-
-
 global $wpcasldap_options;
 if($wpcasldap_options)
 {
@@ -103,183 +96,41 @@ if($wpcasldap_options)
 
 $wpcasldap_use_options = wpcasldap_getoptions();
 
+global $ldapManager;
+$ldapManager = new ldapManager($wpcasldap_use_options['ldapuser'], $wpcasldap_use_options['ldappassword'], $wpcasldap_options['ldapuri']);
+
 error_log("options :".print_r($wpcasldap_use_options,true));
-$cas_configured = true;
 
-// try to configure the phpCAS client
-/** @noinspection PhpIncludeInspection */
-if ($wpcasldap_use_options['include_path'] == '' ||
-		(include_once $wpcasldap_use_options['include_path']) != true)
-	$cas_configured = false;
-
-if ($wpcasldap_use_options['server_hostname'] == '' ||
-		$wpcasldap_use_options['server_path'] == '' ||
-		intval($wpcasldap_use_options['server_port']) == 0)
-	$cas_configured = false;
-
-if ($cas_configured) {
-	phpCAS::client($wpcasldap_use_options['cas_version'], 
-		$wpcasldap_use_options['server_hostname'], 
-		intval($wpcasldap_use_options['server_port']), 
-		$wpcasldap_use_options['server_path']);
-	
-
-	// function added in phpCAS v. 0.6.0
-	// checking for static method existance is frustrating in php4
-	$phpCas = new phpCas();
-	if (method_exists($phpCas, 'setNoCasServerValidation'))
-		phpCAS::setNoCasServerValidation();
-	unset($phpCas);
-	// if you want to set a cert, replace the above few lines
- }
 
 // plugin hooks into authentication system
-add_action('wp_authenticate', array('wpCASLDAP', 'authenticate'), 10, 2);
-add_action('wp_logout', array('wpCASLDAP', 'logout'));
-add_action('lost_password', array('wpCASLDAP', 'disable_function'));
-add_action('retrieve_password', array('wpCASLDAP', 'disable_function'));
-add_action('password_reset', array('wpCASLDAP', 'disable_function'));
-add_filter('show_password_fields', array('wpCASLDAP', 'show_password_fields'));
+add_action('wp_authenticate', array('casManager', 'authenticate'), 10, 2);
+add_action('wp_logout', array('casManager', 'logout'));
+add_action('lost_password', array('casManager', 'disable_function'));
+add_action('retrieve_password', array('casManager', 'disable_function'));
+add_action('password_reset', array('casManager', 'disable_function'));
+add_filter('show_password_fields', array('casManager', 'show_password_fields'));
 
 
 if (is_admin() && !is_multisite()) {// Added condition not multisite because if multisite is true thn it should only show the settings in network admin menu.
 	add_action( 'admin_init', 'wpcasldap_register_settings' );
 	add_action( 'admin_menu', 'wpcasldap_options_page_add' );	
 }
-class wpCASLDAP {
-	
-	/*
-	 We call phpCAS to authenticate the user at the appropriate time 
-	 (the script dies there if login was unsuccessful)
-	 If the user is not provisioned and wpcasldap_useradd is set to 'yes', wpcasldap_nowpuser() is called
-	*/
-	
-	function authenticate() {
-		global $wpcasldap_use_options, $cas_configured, $blog_id;
-
-		if ( !$cas_configured )
-			die( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ));
-
-		if( phpCAS::isAuthenticated() ){
-			// CAS was successful
-
-			if ( $user = get_user_by( 'login', phpCAS::getUser() )){ // user already exists
-					debug_log("correct login");
-					// Update user information from ldap
-					if ($wpcasldap_use_options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
-						
-						$existingUser = get_ldap_user(phpCAS::getUser());	
-						//var_dump($existingUser);
-						if($existingUser)	
-						{
-							
-							$userdata = $existingUser->get_user_data();
-							$userdata["ID"] = $user->ID;
-							
-							unset($userdata['role']);//Remove role from userdata
-
-							$userID = wp_update_user( $userdata );
-							
-							if ( is_wp_error( $userID ) ) {
-								//error_log("Update user failing");
-								$error_string = $userID->get_error_message();
-								//error_log($error_string);
-								echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
-								
-							}
-						}
-						else
-						{
-							error_log("existing user returned false");
-						}
-					}
-				$udata = get_userdata($user->ID);
-				
-				$userExists = is_user_member_of_blog( $user->ID, $blog_id);
-				if (!$userExists) {
-					if (function_exists('add_user_to_blog')) { add_user_to_blog($blog_id, $user->ID, $wpcasldap_use_options['userrole']); }
-				}
-				
-				// the CAS user has a WP account
-				wp_set_auth_cookie( $user->ID );
-
-				if( isset( $_GET['redirect_to'] )){
-					wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
-					debug_log("check if die1 :".$_GET['redirect_to']);
-					debug_log("compare returns :".preg_match( '/^http/', $_GET['redirect_to']));
-
-					die();
-				}
-				debug_log("check if die2");
-				wp_redirect( site_url( '/wp-admin/' ));
-				die();
-
-			}else{
-				// the CAS user _does_not_have_ a WP account
-
-				echo "Coming here";
-				if (function_exists( 'wpcasldap_nowpuser' ) && $wpcasldap_use_options['useradd'] == 'yes')
-				{
-					//error_log("check if die3");
-					wpcasldap_nowpuser( phpCAS::getUser() );
-				}
-					
-				else
-					die( __( 'you do not have permission here', 'wpcasldap' ));
-			}
-		}else{
-			// hey, authenticate
-			phpCAS::forceAuthentication();
-			die();
-		}
-	}
-	
-	
-	// hook CAS logout to WP logout
-	function logout() {
-		global $cas_configured;
-		global $get_options_func;
-		if (!$cas_configured)
-			die( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ));
-
-		phpCAS::logout( array( 'url' => $get_options_func( 'siteurl' )));
-		exit();
-	}
-
-	// hide password fields on user profile page.
-	function show_password_fields( $show_password_fields ) {
-		if( 'user-new.php' <> basename( $_SERVER['PHP_SELF'] ))
-			return false;
-
-		$random_password = substr( md5( uniqid( microtime( ))), 0, 8 );
-
-?>
-<input id="wpcasldap_pass1" type="hidden" name="pass1" value="<?php echo $random_password ?>" />
-<input id="wpcasldap_pass2" type="hidden" name="pass2" value="<?php echo $random_password ?>" />
-<?php
-		return false;
-	}
-
-	// disabled reset, lost, and retrieve password features
-	function disable_function() {
-		die( __( 'Sorry, this feature is disabled.', 'wpcasldap' ));
-	}
-}
 
 function wpcasldap_nowpuser($newuserid) {
 	global $wpcasldap_use_options;
+  global $ldapManager;
 	$userdata = "";
 	//error_log("\nThis is true:".$wpcasldap_use_options['useldap']);
 	//error_log("\nThis is true:".function_exists("ldap_connect"));
 	if ($wpcasldap_use_options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
 	//if ($wpcasldap_use_options['useldap'] == 'yes' ) {
-		$newuser = get_ldap_user($newuserid);
+		$newuser = $ldapManager->GetUser($newuserid, $wpcasldap_use_options["ldapbasedn"]);
 		
 		//echo "<pre>";print_r($newuser);echo "</pre>";
 		//error_log("new user value :".$newuserid);
 		//exit();
 		if($newuser)
-			$userdata = $newuser->get_user_data();
+			$userdata = $newuser->GetData();
 		else
 			echo "User not found in LDAP";
 		//echo "<br/> userdata returned :".print_r($userdata,true)."<br/> ";
@@ -324,154 +175,6 @@ function wpcasldap_nowpuser($newuserid) {
 	}
 }
 
-function get_ldap_user($uid) {
-	global $wpcasldap_use_options;
-  global $get_options_func;
-    global $ldapManager;
-    debug_log("host :" . $wpcasldap_use_options['ldaphost']);
-    debug_log("port :" . $wpcasldap_use_options['ldapport']);
-
-    try
-    {
-        $ldap_uri = $get_options_func('wpcasldap_ldapuri');
-
-        $ds = $ldapManager->Connect($ldap_uri);
-        if (!$ds) {
-            //Can't connect to LDAP.
-            $error = 'Error in contacting the LDAP server.';
-            error_log("\n" . $error);
-        } else {
-            //error_log("\n".$filter);
-            /*
-            $ldap_dn = $wpcasldap_use_options['ldapbasedn'];
-            */
-            //echo "<h2>Connected</h2>";
-
-            // Make sure the protocol is set to version 3
-            if (!$ldapManager->SetOption(ldapManager::OPT_PROTOCOL_VERSION, 3)) {
-                $error = 'Failed to set protocol version to 3.';
-                error_log("\n" . $error);
-            } else {
-                //Connection made -- bind anonymously and get dn for username.
-                $ldaprdn = $wpcasldap_use_options['ldapuser']; //$GLOBALS['ldapUser'];     // ldap rdn or dn
-                $ldappass = $wpcasldap_use_options['ldappassword']; //$GLOBALS['ldapPassword'];  // associated password
-                debug_log("username :" . $ldaprdn);
-                debug_log("password :" . $ldappass);
-                //echo "ldap user :".$ldaprdn ;
-              if(empty($ldaprdn) || empty($ldappass))
-              {
-                echo "ERROR: LDAP Username or LDAP Password not configured correctly";
-                exit();
-              }
-
-                $bind = $ldapManager->Bind($ldaprdn, $ldappass);
-                //$bind = @ldap_bind($ds);
-                //Check to make sure we're bound.
-                if (!$bind) {
-                    $error = 'Anonymous bind to LDAP failed.';
-                    echo "\nERROR: " . $error;
-                    error_log($error);
-                    //exit();
-                } else {
-
-                    /*
-                    This code is added to get all the groups a users belongs to.
-                    */
-                    /*
-                    $GroupsDN = array();
-                    $filter = "sAMAccountName=".$uid;
-                    $attributes_ad = array("dn","givenName","sn","primaryGroupID");
-                    //Query to get Primary group id
-                    $search = ldap_search($ds, $wpcasldap_use_options['ldapbasedn'], $filter,$attributes_ad);
-                    $result = ldap_get_entries($ds, $search);
-                    error_log( "result:".print_r($result,true));
-
-                    $pri_grp_rid = $result[0]['primarygroupid'][0];
-                    echo "primaryGroupID :".$pri_grp_rid ;
-
-                    $r = ldap_read($ds, $wpcasldap_use_options['ldapbasedn'], '(objectclass=*)', array('objectSid')) or exit('ldap_search');
-                    $data = ldap_get_entries($ds, $r);
-                    $domain_sid = $data[0]['objectsid'][0];
-                    echo "<br/> domain sid:".$domain_sid;
-                    $domain_sid_s = sid2str($domain_sid);
-                    echo "<br/> domain sid s:".$domain_sid_s;
-                    //Request to get Primary group CN
-                    $r = ldap_search($ds, $wpcasldap_use_options['ldapbasedn'], "objectSid=${domain_sid_s}-${pri_grp_rid}", array('cn')) or exit('ldap_search');
-                    $data = ldap_get_entries($ds, $r);
-                    error_log("\n data:".print_r($data,true));
-                    //exit();
-
-                    $defaultGroupDN = $data[0]['dn'];
-                    $getCN = $data[0]['cn'][0];
-                    //$defaultGroupDN = "CN=".$getCN.",OU=Groups,DC=BellevueCollege,DC=EDU" ;
-                    echo "<br/> CN:".$getCN;
-
-
-                    echo("<br/> dn = ".$defaultGroupDN."\n");
-                    // This query is to get all the groups which are memberOf Primary Group
-                    //Its not working right now.
-                    if($defaultGroupDN !=null)
-                    {
-                        $GroupsDN[] = $defaultGroupDN ;
-                        $filter = "(memberof:1.2.840.113556.1.4.1941:=".$defaultGroupDN.")";
-                        $attributes_ad = array("CN");
-                        $search = ldap_search($ds, $wpcasldap_use_options['ldapbasedn'], $filter,$attributes_ad);
-                        $info = ldap_get_entries($ds, $search);
-                        echo("<br/>".print_r($info,true));
-                        for($i=0;$i<count($info);$i++)
-                        {
-
-                                if($info[$i]["dn"] !=null)
-                                    $GroupsDN[] = $info[$i]["dn"] ;
-                                echo(print_r("<br/>".$info[$i]["dn"],true) ."<br/>");
-
-                            //var_dump($info[$i]);
-                        }
-                    }
-
-                    if($result[0]["dn"] !=null)
-                    {
-                        $filter = "(member:1.2.840.113556.1.4.1941:=".$result[0]["dn"].")";
-                        $attributes_ad = array("CN");
-                        $search = ldap_search($ds, $wpcasldap_use_options['ldapbasedn'], $filter,$attributes_ad);
-                        $info = ldap_get_entries($ds, $search);
-
-                        //error_log("\nresult identifier :".$info);
-                        error_log("\nenterries :".print_r($info,true));
-                        echo "count :".count($info);
-                        for($i=0;$i<count($info);$i++)
-                        {
-
-                                if($info[$i]["dn"] !=null)
-                                    $GroupsDN[] = $info[$i]["dn"] ;
-                                echo(print_r($info[$i]["dn"],true) ."<br/>");
-
-                            //var_dump($info[$i]);
-                        }
-                        //var_dump($info);
-                        exit();
-                    }
-
-                    */
-                    $search = $ldapManager->Search($wpcasldap_use_options['ldapbasedn'], "sAMAccountName=$uid", array('uid','mail','givenname','sn','rolename','cn','EmployeeID','sAMAccountName'));
-                    $info = $ldapManager->GetSearchResults($search);
-
-                    $ldapManager->Close();
-                    // TODO: Is this code assuming that $info only contains one record?
-                    return new wpcasldapuser($info);
-                }
-                $ldapManager->Close();
-            }
-        }
-    }
-    catch (Exception $e)
-    {
-        $err_msg = "An LDAP error occurred while talking to '" . $wpcasldap_use_options['ldaphost'] . "': " . $e->getMessage();
-        error_log($err_msg);
-        debug_log($err_msg);
-    }
-	return FALSE;
-}
 
 function sid2str($sid)
 {
@@ -492,54 +195,6 @@ return sprintf('S-%d-%d-%s', $srl, $iav, implode('-',$sub_ids));
 
 
 
-class wpcasldapuser
-{
-	private $data = NULL;
-
-	function __construct($member_array) {
-		$this->data = $member_array;
-	}
-
-	function get_user_name() {
-		if(isset($this->data[0]['cn'][0]))
-			return $this->data[0]['cn'][0];
-		else
-			return FALSE;
-	}
-	
-	function get_user_data() {
-		global $wpcasldap_use_options;
-		if (isset($this->data[0]['uid'][0]) || isset($this->data[0]['employeeid'][0])) // updating the if to have employeeid check also
-		{
-			error_log("potential bug uid :".$this->data[0]['uid'][0]);
-			$userrole = "";
-			$usernicename = sanitize_title_with_dashes($this->data[0]['samaccountname'][0]);
-			//error_log("user nice name ".$usernicename);
-			//echo "<br/> user login".$this->data[0]['samaccountname'][0];
-			if($this->data[0]['employeeid'][0] != null)
-			{
-				$userrole = $GLOBALS["defaultEmployeeUserrole"];
-			}
-			else
-			{
-				$userrole = $GLOBALS["defaultStudentUserrole"];
-			}
-			return array(
-				'user_login' => $this->data[0]['samaccountname'][0],
-				'user_password' => substr( md5( uniqid( microtime( ))), 0, 8 ), 
-				'user_email' => $this->data[0]['mail'][0],
-				'first_name' => $this->data[0]['givenname'][0],
-				'last_name' => $this->data[0]['sn'][0],
-				'role' => $userrole,
-				'nickname' => $this->data[0]['cn'][0],
-				'user_nicename' => $usernicename
-			);
-		}
-		else 
-			return false;
-	}
-	
-}
 
 
 //----------------------------------------------------------------------------
@@ -549,10 +204,9 @@ class wpcasldapuser
 function wpcasldap_register_settings() {
 	global $wpcasldap_options;
 	
-
-	$options = array('email_suffix', 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldapuri', 'ldaphost',
-	 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword', 'casorldap_attribute', 'casatt_name', 'casatt_operator', 'casatt_user_value_to_compare', 'casatt_wp_role', 
-	 'casatt_wp_site', 'ldap_query', 'ldap_operator', 'ldap_user_value_to_compare', 'ldap_wp_role', 'ldap__wp_site');
+	$options = array('email_suffix' , 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldapuri', 'ldaphost', 'ldapport',
+	 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword', 'casorldap_attribute', 'casatt_name', 'casatt_operator', 'casatt_user_value_to_compare', 'casatt_wp_role', 'casatt_wp_site', 'ldap_query', 
+	 'ldap_operator', 'ldap_user_value_to_compare', 'ldap_wp_role', 'ldap__wp_site');
 
 
 	foreach ($options as $o) {
@@ -612,16 +266,10 @@ function cas_client_settings()
 function wpcasldap_options_page_add() {
 
 	if (function_exists('add_management_page')) 
-	{
-		error_log("options general ----------------------------");
-		add_submenu_page('options-general.php', 'CAS Client', 'CAS Client', CAPABILITY, 'casclient', 'wpcasldap_options_page');	
-	}
+		add_submenu_page('options-general.php', 'CAS Client', 'CAS Client', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');	
 		//add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');		
 	else
-	{
-		error_log("CAS Client for single site ----------------------------");
 		add_options_page( 'CAS Client','CAS Client',CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
-	}
 		//add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ),CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
 
 } 
@@ -663,11 +311,10 @@ function wpcasldap_getoptions() {
 
 //Parse ldap URI to retrieve LDAP Host and LDAP Port
 
-    $ldapManager->Uri = $get_options_func('wpcasldap_ldapuri');
 $ldap_uri = $get_options_func('wpcasldap_ldapuri');
 $ldap_host = "";
 $ldap_port = "";
-$ldap_uri_components = $ldapManager->ParseUri($ldap_uri);
+$ldap_uri_components = ldapManager::ParseUri($ldap_uri);
 if(isset($ldap_uri_components))
 {
 	if(isset($ldap_uri_components['host']))
@@ -697,6 +344,7 @@ $ldapPassword = (string) $get_options_func('wpcasldap_ldappassword');
 $ldapPassword = wpcasclient_decrypt($ldapPassword , $GLOBALS['ciphers'])  ;
 $ldapPassword = $ldapPassword ? $ldapPassword : ""; // if the  decrypt function returns false thn set password to empty string
 
+  // TODO: Are all of these settings still being used? (e.g. ldap_host?)
 	$out = array (
 			'email_suffix' => $get_options_func('wpcasldap_email_suffix'),
 			'cas_version' => $get_options_func('wpcasldap_cas_version'),
@@ -712,9 +360,8 @@ $ldapPassword = $ldapPassword ? $ldapPassword : ""; // if the  decrypt function 
 			'ldapport' => $ldap_port,// $get_options_func('wpcasldap_ldapport'),
 			'useldap' => $get_options_func('wpcasldap_useldap'),
 			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn'),
-
 			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
-			'ldappassword' => $ldapPassword	,	
+			'ldappassword' => $ldapPassword,			
 			'casorldap_attribute' => $get_options_func('wpcasldap_casorldap_attribute'),
 			'casatt_name' => $get_options_func('wpcasldap_casatt_name'),
 			'casatt_operator' => $get_options_func('wpcasldap_casatt_operator'),
@@ -726,7 +373,6 @@ $ldapPassword = $ldapPassword ? $ldapPassword : ""; // if the  decrypt function 
 			'ldap_user_value_to_compare' => $get_options_func('wpcasldap_ldap_user_value_to_compare'),
 			'ldap_wp_role' => $get_options_func('wpcasldap_ldap_wp_role'),
 			'ldap__wp_site' => $get_options_func('wpcasldap_ldap_wp_site'),
-
 		);
 
 	if (is_array($wpcasldap_options) && count($wpcasldap_options) > 0)
@@ -757,4 +403,11 @@ function parse_cas_url(&$cas_server_url)
   return $components;
 }
 
+function get_option_wrapper($opt)
+{
+  global $get_options_func;
+  return $get_options_func($opt);
+}
 ?>
+
+

@@ -263,7 +263,7 @@
 				</th>
 
 				<td>
-					<input type="text" size="50" name="wpcasldap_email_suffix" id="email_suffix_inp" value="<?php echo $optionarray_def['email_suffix']; ?>" />
+					<input type="text" size="50" name="wpcasldap_email_suffix" id="server_port_inp" value="<?php echo $optionarray_def['email_suffix']; ?>" />
 				</td>
 			</tr>
 	        <?php endif; ?>
