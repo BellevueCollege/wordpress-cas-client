@@ -28,11 +28,17 @@ class ldapUser
 
   function GetData()
   {
+    if(empty($this->data))
+    {
+      debug_log("(ldapUser->GetData()) Data array is empty!");
+      return false;
+    }
+    debug_log("(ldapUser->GetData()) uid => '".$this->data[0]['uid'][0]."', employeeid => '".$this->data[0]['employeeid'][0]."'");
+
     if (isset($this->data[0]['uid'][0]) || isset($this->data[0]['employeeid'][0])) // updating the if to have employeeid check also
     {
-      error_log("potential bug uid :".$this->data[0]['uid'][0]);
       $usernicename = sanitize_title_with_dashes($this->data[0]['samaccountname'][0]);
-      debug_log("user nice name ".$usernicename);
+      debug_log("(ldapUser) user nice name ".$usernicename);
       //echo "<br/> user login".$this->data[0]['samaccountname'][0];
       if($this->data[0]['employeeid'][0] != null)
       {
@@ -54,6 +60,11 @@ class ldapUser
       );
     }
     else
+    {
+      $error = "(ldapUser->GetData()) Data lookup failed: Does not appear to contain either an 'uid' or 'employeeid'";
+      error_log($error);
+      debug_log($error);
       return false;
+    }
   }
 }

@@ -43,20 +43,18 @@ License: GPL2
 
 // include common functions, etc.
 
-define("CAPABILITY","edit_themes");
-define("CAS_DEFAULT_PORT",'443');
-define("CAS_DEFAULT_PATH","/");
-define("SCHEME","https://");
-define("DEFAULT_CASFILE_PATH", dirname(__FILE__).'/CAS/CAS.php');
+include_once(dirname(__FILE__)."/cas-client-constants.php");
+include_once(dirname(__FILE__)."/utilities.php");
+// automatically include class files when encountered
+spl_autoload_register('class_autoloader');
+// Must explicitly include class file when referencing static members
+include_once(dirname(__FILE__)."/ldapManager.php");
+include_once(dirname(__FILE__)."/casManager.php");
+
 // This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
 global $get_options_func ;
 //This global variable is defaulted to 'options.php' , but for network setting we want the form to submit to itself, so we will leave it empty
 global $form_action;
-
-include_once(dirname(__FILE__)."/utilities.php");
-include_once(dirname(__FILE__) . "/casManager.php");
-include_once(dirname(__FILE__) . "/ldapManager.php");
-include_once(dirname(__FILE__) . "/ldapUser.php");
 
 if (file_exists( dirname(__FILE__).'/config.php' ) )
     /** @noinspection PhpIncludeInspection */
@@ -70,7 +68,7 @@ if (file_exists( dirname(__FILE__).'/cas-password-encryption.php' ) )
 	include_once( dirname(__FILE__).'/cas-password-encryption.php' ); 
 
 // helps separate debug output
-debug_log("================= Executing wordpress-cas-client.php ===================\n");
+debug_log("================= Executing wordpress-cas-client.php (".$blog_id.") ===================\n");
 
 if (file_exists( dirname(__FILE__).'/cas-client-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/cas-client-ui.php' ); // attempt to fetch the optional config file
@@ -95,20 +93,18 @@ if($wpcasldap_options)
 }
 
 $wpcasldap_use_options = wpcasldap_getoptions();
+debug_log("(wordpress-cas-client) options: ".print_r($wpcasldap_use_options,true));
 
-global $ldapManager;
-$ldapManager = new ldapManager($wpcasldap_use_options['ldapuser'], $wpcasldap_use_options['ldappassword'], $wpcasldap_options['ldapuri']);
-
-error_log("options :".print_r($wpcasldap_use_options,true));
-
+global $casManager;
+$casManager = new casManager($wpcasldap_use_options);
 
 // plugin hooks into authentication system
-add_action('wp_authenticate', array('casManager', 'authenticate'), 10, 2);
-add_action('wp_logout', array('casManager', 'logout'));
-add_action('lost_password', array('casManager', 'disable_function'));
-add_action('retrieve_password', array('casManager', 'disable_function'));
-add_action('password_reset', array('casManager', 'disable_function'));
-add_filter('show_password_fields', array('casManager', 'show_password_fields'));
+add_action('wp_authenticate', 'cas_client_authenticate', 10, 2);
+add_action('wp_logout', 'cas_client_logout');
+add_action('lost_password', 'cas_client_lost_password');
+add_action('retrieve_password', 'cas_client_retrieve_password');
+add_action('password_reset', 'cas_client_password_reset');
+add_filter('show_password_fields', 'cas_client_show_password_fields');
 
 
 if (is_admin() && !is_multisite()) {// Added condition not multisite because if multisite is true thn it should only show the settings in network admin menu.
@@ -116,65 +112,41 @@ if (is_admin() && !is_multisite()) {// Added condition not multisite because if 
 	add_action( 'admin_menu', 'wpcasldap_options_page_add' );	
 }
 
-function wpcasldap_nowpuser($newuserid) {
-	global $wpcasldap_use_options;
-  global $ldapManager;
-	$userdata = "";
-	//error_log("\nThis is true:".$wpcasldap_use_options['useldap']);
-	//error_log("\nThis is true:".function_exists("ldap_connect"));
-	if ($wpcasldap_use_options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
-	//if ($wpcasldap_use_options['useldap'] == 'yes' ) {
-		$newuser = $ldapManager->GetUser($newuserid, $wpcasldap_use_options["ldapbasedn"]);
-		
-		//echo "<pre>";print_r($newuser);echo "</pre>";
-		//error_log("new user value :".$newuserid);
-		//exit();
-		if($newuser)
-			$userdata = $newuser->GetData();
-		else
-			echo "User not found in LDAP";
-		//echo "<br/> userdata returned :".print_r($userdata,true)."<br/> ";
-	} else {
-		$userdata = array(
-				'user_login' => $newuserid,
-				'user_password' => substr( md5( uniqid( microtime( ))), 0, 8 ),
-				'user_email' => $newuserid.'@'.$wpcasldap_use_options['email_suffix'],
-				'role' => $wpcasldap_use_options['userrole'],
-			);
-	}
-	if (!function_exists('wp_insert_user'))
-		include_once ( ABSPATH . WPINC . '/registration.php');
-	
-
-	if($userdata)
-	{	
-		$user_id = wp_insert_user( $userdata );
-		if ( is_wp_error( $user_id ) ) {
-			//error_log("inserting a user in wp failed");
-	   		$error_string = $user_id->get_error_message();
-	   		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
-	   		return;
-		}
-		/*
-		if ( !$user_id || !$user) {
-			error_log("This is coming here");
-			$errors['registerfail'] = sprintf(__('<strong>ERROR</strong>: The login system couldn\'t register you in the local database. Please contact the <a href="mailto:%s">webmaster</a> '), get_option('admin_email'));
-			return;
-		} */else {
-			wp_new_user_notification($user_id, $user_pass);
-			wp_set_auth_cookie( $user->ID );
-
-			if( isset( $_GET['redirect_to'] )){
-				wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
-				die();
-			}
-
-			wp_redirect( site_url( '/wp-admin/' ));
-			die();
-		}
-	}
+function cas_client_authenticate()
+{
+  global $casManager;
+  $casManager->authenticate();
 }
 
+function cas_client_logout()
+{
+  global $casManager;
+  $casManager->logout();
+}
+
+function cas_client_lost_password()
+{
+  global $casManager;
+  $casManager->disable_function();
+}
+
+function cas_client_retrieve_password()
+{
+  global $casManager;
+  $casManager->disable_function();
+}
+
+function cas_client_password_reset()
+{
+  global $casManager;
+  $casManager->disable_function();
+}
+
+function cas_client_show_password_fields($show_password_fields)
+{
+  global $casManager;
+  return $casManager->show_password_fields($show_password_fields);
+}
 
 function sid2str($sid)
 {
@@ -237,6 +209,8 @@ function wpcasldap_register_settings() {
 	}
 }
 
+// TODO: The following 5 functions look like perhaps they should be moved into utilities.php
+
 function wpcasldap_strip_at($in) {
 	return str_replace('@','',$in);
 }
@@ -279,7 +253,6 @@ function wpcasldap_options_page_add() {
 function wpcasldap_getoptions() {
 	global $wpcasldap_options;
 	global $get_options_func;
-    global $ldapManager;
 	//Parse the url to retrieve server_name, server_port and path
 	$cas_server = $get_options_func('wpcasldap_casserver');
 	$componentsOfUrl = parse_cas_url($cas_server);
@@ -312,6 +285,7 @@ function wpcasldap_getoptions() {
 //Parse ldap URI to retrieve LDAP Host and LDAP Port
 
 $ldap_uri = $get_options_func('wpcasldap_ldapuri');
+  debug_log("(wordpress-cas-client) Retrieved LDAP URI from db: '$ldap_uri'");
 $ldap_host = "";
 $ldap_port = "";
 $ldap_uri_components = ldapManager::ParseUri($ldap_uri);
