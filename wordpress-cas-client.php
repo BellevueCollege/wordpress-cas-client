@@ -50,7 +50,6 @@ spl_autoload_register('class_autoloader');
 // Must explicitly include class file when referencing static members
 include_once(dirname(__FILE__)."/ldapManager.php");
 include_once(dirname(__FILE__)."/casManager.php");
-
 // This global variable is set to either 'get_option' or 'get_site_option' depending on multisite option value
 global $get_options_func ;
 //This global variable is defaulted to 'options.php' , but for network setting we want the form to submit to itself, so we will leave it empty
@@ -68,7 +67,7 @@ if (file_exists( dirname(__FILE__).'/cas-password-encryption.php' ) )
 	include_once( dirname(__FILE__).'/cas-password-encryption.php' ); 
 
 // helps separate debug output
-debug_log("================= Executing wordpress-cas-client.php (".$blog_id.") ===================\n");
+debug_log("================= Executing wordpress-cas-client.php ===================\n");
 
 if (file_exists( dirname(__FILE__).'/cas-client-ui.php' ) ) 
 	include_once( dirname(__FILE__).'/cas-client-ui.php' ); // attempt to fetch the optional config file
@@ -105,6 +104,7 @@ add_action('lost_password', 'cas_client_lost_password');
 add_action('retrieve_password', 'cas_client_retrieve_password');
 add_action('password_reset', 'cas_client_password_reset');
 add_filter('show_password_fields', 'cas_client_show_password_fields');
+
 
 
 if (is_admin() && !is_multisite()) {// Added condition not multisite because if multisite is true thn it should only show the settings in network admin menu.
@@ -176,10 +176,9 @@ return sprintf('S-%d-%d-%s', $srl, $iav, implode('-',$sub_ids));
 function wpcasldap_register_settings() {
 	global $wpcasldap_options;
 	
-	$options = array('email_suffix' , 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldapuri', 'ldaphost', 'ldapport',
-	 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword', 'casorldap_attribute', 'casatt_name', 'casatt_operator', 'casatt_user_value_to_compare', 'casatt_wp_role', 'casatt_wp_site', 'ldap_query', 
-	 'ldap_operator', 'ldap_user_value_to_compare', 'ldap_wp_role', 'ldap__wp_site');
-
+	$options = array('email_suffix', 'casserver', 'cas_version', 'include_path', 'server_hostname', 'server_port', 'server_path', 'useradd', 'userrole', 'ldapuri', 'ldaphost',
+	 'ldapport', 'ldapbasedn', 'useldap', 'ldapuser', 'ldappassword', 'casorldap_attribute', 'casatt_name', 'casatt_operator', 'casatt_user_value_to_compare', 'casatt_wp_role', 
+	 'casatt_wp_site', 'ldap_query', 'ldap_operator', 'ldap_user_value_to_compare', 'ldap_wp_role', 'ldap__wp_site');
 
 	foreach ($options as $o) {
 		if (!isset($wpcasldap_options[$o])) {
@@ -240,10 +239,16 @@ function cas_client_settings()
 function wpcasldap_options_page_add() {
 
 	if (function_exists('add_management_page')) 
-		add_submenu_page('options-general.php', 'CAS Client', 'CAS Client', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');	
+	{
+		error_log("options general ----------------------------");
+		add_submenu_page('options-general.php', 'CAS Client', 'CAS Client', CAPABILITY, 'casclient', 'wpcasldap_options_page');	
+	}
 		//add_submenu_page('options-general.php', 'wpCAS with LDAP', 'wpCAS with LDAP', CAPABILITY, 'wpcasldap', 'wpcasldap_options_page');		
 	else
+	{
+		error_log("CAS Client for single site ----------------------------");
 		add_options_page( 'CAS Client','CAS Client',CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
+	}
 		//add_options_page( __( 'wpCAS with LDAP', 'wpcasldap' ), __( 'wpCAS with LDAP', 'wpcasldap' ),CAPABILITY, basename(__FILE__), 'wpcasldap_options_page');
 
 } 
@@ -334,6 +339,7 @@ $ldapPassword = $ldapPassword ? $ldapPassword : ""; // if the  decrypt function 
 			'ldapport' => $ldap_port,// $get_options_func('wpcasldap_ldapport'),
 			'useldap' => $get_options_func('wpcasldap_useldap'),
 			'ldapbasedn' => $get_options_func('wpcasldap_ldapbasedn'),
+
 			'ldapuser' => $get_options_func('wpcasldap_ldapuser'),
 			'ldappassword' => $ldapPassword,			
 			'casorldap_attribute' => $get_options_func('wpcasldap_casorldap_attribute'),
@@ -382,6 +388,5 @@ function get_option_wrapper($opt)
   global $get_options_func;
   return $get_options_func($opt);
 }
+
 ?>
-
-
