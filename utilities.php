@@ -32,11 +32,24 @@ function debug_log($message)
   if (ENABLE_DEBUG_LOG)
   {
     $date = new DateTime();
-    $current_site = get_current_site();
-    if (!error_log(trim($current_site->path, "/").": [".$date->format('Y-m-d H:i:s')."] ".$message . "\n", 3, DEBUG_LOG_PATH))
+    if (!error_log(site_name().": [".$date->format('Y-m-d H:i:s')."] ".$message . "\n", 3, DEBUG_LOG_PATH))
     {
       error_log("UNABLE TO WRITE TO DEBUG LOG (" . DEBUG_LOG_PATH . "): '" . $message . "'");
     }
+  }
+}
+
+function site_name()
+{
+  if (is_multisite())
+  {
+    $current_site = get_current_site();
+    return trim($current_site->path, "/");
+  }
+  else
+  {
+    // TODO: Identify the current blog by some string
+    return "";
   }
 }
 

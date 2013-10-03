@@ -21,8 +21,11 @@ class casManager
     debug_log("(casManager) Initializing casManager (constructor)");
     debug_log("(casManager) options: ".print_r($options, true));
 
-    /** @noinspection PhpIncludeInspection */
-    include_once($options["include_path"]);
+    if (!empty($options["include_path"]) && file_exists($options["include_path"]))
+    {
+      /** @noinspection PhpIncludeInspection */
+      include_once($options["include_path"]);
+    }
 
     $this->options = $options;
     $this->ConfigureCasClient($options);
