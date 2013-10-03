@@ -10,7 +10,6 @@
 include_once(dirname(__FILE__) . "/utilities.php");
 include_once(dirname(__FILE__) . "/ldapUser.php");
 
-
 /**
  * Class ldapManager
  */
@@ -56,34 +55,29 @@ class ldapManager
    *
    * @var string
    */
-  public $Uri = "";
+  public $Uri;
 
   /**
    * @var string
    */
-  public $Username = "";
+  public $Username;
 
   /**
    * @param        $login
    * @param        $password
    * @param string $uri
    */
-  function __construct($login = "", $password = "", $uri = "")
+  function __construct($login, $password, $uri= "")
   {
-    if($login != "") {
-      error_log("LDAP username cannot be blank. (contstructor)");
-      return null;
-    }
-    if($password == "") {
-      error_log("LDAP password cannot be blank. (contstructor)");
-      return null;
-    }
+    debug_log("Initializing ldapManager (constructor) [login => '$login', password => '$password', uri => '$uri' ]");
 
     $this->Username = $login;
     $this->password = $password;
 
     if($uri != "") {
+      debug_log("(ldapManager) Setting Uri = '$uri''");
       $this->Uri = $uri;
+      debug_log("(ldapManager) this->Uri == '$this->Uri'");
     }
   }
 
@@ -106,36 +100,37 @@ class ldapManager
   public function Connect($uri = "")
   {
     if(!$this->HaveUri($uri)) { return null; }
-    debug_log("Establishing LDAP connection: " . $uri . "...");
+
+    debug_log("(ldapManager->Connect()) Establishing LDAP connection: " . $this->Uri . "...");
 
     try
     {
-      $uri_parts = ldapManager::ParseUri($uri);
+      $uri_parts = ldapManager::ParseUri($this->Uri);
       $scheme = empty($uri_parts["scheme"]) ? ldapManager::URI_SCHEME : $uri_parts["scheme"];
 
       if ($scheme == ldapManager::SSL_URI_SCHEME)
       {
-        debug_log("LDAPS detected. (scheme == '$scheme')");
+        debug_log("(ldapManager->Connect()) LDAPS detected. (scheme == '$scheme')");
         $port = $this->SetPort($uri_parts, ldapManager::SSL_DEFAULT_PORT);
       }
       else
       {
-        debug_log("LDAPS not specified - establishing UNENCRYPTED connection.");
+        debug_log("(ldapManager->Connect()) LDAPS not specified - establishing UNENCRYPTED connection.");
         $port = $this->SetPort($uri_parts, ldapManager::DEFAULT_PORT);
       }
 
 // Wordpress install complains that http_build_url() is not recognized. 9/30/2013 - shawn.south@bellevuecollege.edu
 //      $connection_url = http_build_url("", $uri_parts, HTTP_URL_STRIP_PORT);
       $connection_url = $this->BuildUrl($scheme, $uri_parts);
-      debug_log("Connection URL: '" . $connection_url . "' on port [" . $port . "]");
+      debug_log("(ldapManager->Connect()) Connection URL: '" . $connection_url . "' on port [" . $port . "]");
 
       $this->connection = ldap_connect($connection_url, $port);
     }
     catch (Exception $ex)
     {
-      $error_msg = "LDAP connection to '" . $uri . "' failed: " . $ex->getMessage();
-      debug_log($error_msg);
+      $error_msg = "LDAP connection to '" . $this->Uri . "' failed: " . $ex->getMessage();
       error_log($error_msg);
+      debug_log("(ldapManager->Connect()) ".$error_msg);
     }
     return $this->connection;
   }
@@ -151,7 +146,7 @@ class ldapManager
     }
     else
     {
-      debug_log("No connection exists, so call to Close() skipped.");
+      debug_log("No connection exists, so call to Close() ignored.");
     }
   }
 
@@ -262,13 +257,15 @@ class ldapManager
    */
   function GetUser($uid, $baseDN)
   {
-    if(!$this->HaveUri()) { return null; }
+//    if(!$this->HaveUri()) { return null; }
 
     try
     {
-      $ds = $this->Connect($this->Uri);
+      $ds = $this->Connect();
       if (!$ds) {
-        error_log("\n" . 'Error in contacting the LDAP server.');
+        $error = 'Error in contacting the LDAP server.';
+        error_log("\n" . $error);
+        debug_log("(ldapManager->GetUser()) ".$error);
       } else {
         //error_log("\n".$filter);
         /*
@@ -278,13 +275,12 @@ class ldapManager
 
         // Make sure the protocol is set to version 3
         if (!$this->SetOption(ldapManager::OPT_PROTOCOL_VERSION, 3)) {
-          error_log("\n" . 'Failed to set protocol version to 3.');
+          $error = 'Failed to set protocol version to 3.';
+          error_log("\n" . $error);
+          debug_log("(ldapManager->GetUser()) ".$error);
         } else {
-          //Connection made -- bind anonymously and get dn for username.
-          debug_log("username :" . $this->Username);
-          debug_log("password :" . $this->password);
-          //echo "ldap user :".$ldaprdn ;
-          if(empty($ldaprdn) || empty($ldappass))
+          debug_log("(ldapManager->GetUser()) username: '" . $this->Username . "', Password: '".  $this->password . "'");
+          if(empty($this->Username) || empty($this->password))
           {
             echo "ERROR: LDAP Username or LDAP Password not configured correctly";
             exit();
@@ -297,6 +293,7 @@ class ldapManager
             $error = 'Binding to LDAP failed.';
             echo "\nERROR: " . $error;
             error_log($error);
+            debug_log("(ldapManager->GetUser()) ".$error);
             //exit();
           } else {
 
@@ -379,12 +376,17 @@ class ldapManager
             }
 
             */
+            debug_log("(ldapManager->GetUser()) Searching for user ID '$uid'");
             $search = $this->Search($baseDN, "sAMAccountName=$uid", array('uid','mail','givenname','sn','rolename','cn','EmployeeID','sAMAccountName'));
-            $info = $this->GetSearchResults($search);
+            if (isset($search) && !empty($search))
+            {
+              $info = $this->GetSearchResults($search);
 
-            $this->Close();
-            // TODO: Is this code assuming that $info only contains one record?
-            return new ldapUser($info);
+              $this->Close();
+              // TODO: Is this code assuming that $info only contains one record?
+              return new ldapUser($info);
+            }
+            debug_log("(ldapManager->GetUser()) User not found!");
           }
           $this->Close();
         }
@@ -445,7 +447,8 @@ class ldapManager
   /**
    * @param $uri
    * @return bool
-   */private function HaveUri($uri = "")
+   */
+  private function HaveUri($uri = "")
   {
     if ($uri != "")
     {
@@ -453,14 +456,16 @@ class ldapManager
     }
     else
     {
-      debug_log("No URL provided, falling back on Uri property.");
-      if ($this->Uri != "")
+      debug_log("No URL provided ($uri), falling back on Uri property ($this->Uri)");
+      if (isset($this->Uri) && $this->Uri != "")
       {
         return true;
       }
       else
       {
-        error_log("Unable to continue - no LDAP URI was provided.");
+        $error = "Unable to continue - no LDAP URI was provided.";
+        error_log($error);
+        debug_log($error);
       }
     }
   }

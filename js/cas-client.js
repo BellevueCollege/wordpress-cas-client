@@ -6,4 +6,3 @@ function showPasswordField()
 	 ldapPasswordField.disabled = false;
 	 buttonReset.style.display = "none";
 }
-

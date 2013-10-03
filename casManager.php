@@ -6,9 +6,9 @@
  * Time: 6:34 PM
  * To change this template use File | Settings | File Templates.
  */
-include_once( dirname(__FILE__)."/wordpress-cas-client.php");
-include_once(dirname(__FILE__) . "/ldapManager.php");
-include_once(dirname(__FILE__) . "/ldapUser.php");
+include_once(dirname(__FILE__)."/utilities.php");
+spl_autoload_register('class_autoloader');
+
 
 class casManager
 {
@@ -16,14 +16,32 @@ class casManager
   private $ldapManager;
   private $options;
 
-  function __construct()
+  function __construct($options, $ldapManager = null)
   {
-    $options = wpcasldap_getoptions();
-    $this->options = $options;
+    debug_log("(casManager) Initializing casManager (constructor)");
+    debug_log("(casManager) options: ".print_r($options, true));
 
+    if (!empty($options["include_path"]) && file_exists($options["include_path"]))
+    {
+      /** @noinspection PhpIncludeInspection */
+      include_once($options["include_path"]);
+    }
+
+    $this->options = $options;
     $this->ConfigureCasClient($options);
 
-    $this->ldapManager = new ldapManager($options['ldapuser'], $options['ldappassword'], $options['ldapuri']);
+    if(isset($ldapManager) && $ldapManager != null)
+    {
+      debug_log("(casManager) ldapManager was passed in, using that.");
+      $this->ldapManager = $ldapManager;
+    }
+    else
+    {
+      debug_log("(casManager) no ldapManager provided. Instantiating a new one.");
+//      debug_log("options: " . print_r($options, true));
+      $this->ldapManager = new ldapManager($options['ldapuser'], $options['ldappassword'], $options['ldapuri']);
+    }
+    debug_log("(casManager) ldapManager created: ldapManager->Uri == '".$this->ldapManager->Uri."'");
   }
 
   /*
@@ -42,7 +60,7 @@ class casManager
       // CAS was successful
 
       if ( $user = get_user_by( 'login', phpCAS::getUser() )){ // user already exists
-        debug_log("correct login");
+        debug_log("(casManager) correct login");
         // Update user information from ldap
         if ($this->options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
 
@@ -84,8 +102,8 @@ class casManager
 
         if( isset( $_GET['redirect_to'] )){
           wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
-          debug_log("check if die1 :".$_GET['redirect_to']);
-          debug_log("compare returns :".preg_match( '/^http/', $_GET['redirect_to']));
+          debug_log("(casManager) check if die1 :".$_GET['redirect_to']);
+          debug_log("(casManager) compare returns :".preg_match( '/^http/', $_GET['redirect_to']));
 
           die();
         }
@@ -95,12 +113,10 @@ class casManager
 
       }else{
         // the CAS user _does_not_have_ a WP account
-
-        echo "Coming here";
-        if (function_exists( 'wpcasldap_nowpuser' ) && $this->options['useradd'] == 'yes')
+        if ($this->options['useradd'] == 'yes')
         {
           //error_log("check if die3");
-          wpcasldap_nowpuser( phpCAS::getUser() );
+          $this->NoWordpressUser( phpCAS::getUser() );
         }
 
         else
@@ -113,6 +129,63 @@ class casManager
     }
   }
 
+  private function NoWordpressUser($newuserid)
+  {
+    $userdata = "";
+    //error_log("\nThis is true:".$wpcasldap_use_options['useldap']);
+    //error_log("\nThis is true:".function_exists("ldap_connect"));
+    if ($this->options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
+      //if ($wpcasldap_use_options['useldap'] == 'yes' ) {
+      $newuser = $this->ldapManager->GetUser($newuserid, $this->options["ldapbasedn"]);
+
+      //echo "<pre>";print_r($newuser);echo "</pre>";
+      //error_log("new user value :".$newuserid);
+      //exit();
+      if($newuser)
+        $userdata = $newuser->GetData();
+      else
+        echo "User not found in LDAP";
+      //echo "<br/> userdata returned :".print_r($userdata,true)."<br/> ";
+    } else {
+      $userdata = array(
+        'user_login' => $newuserid,
+        'user_password' => substr( md5( uniqid( microtime( ))), 0, 8 ),
+        'user_email' => $newuserid.'@'.$this->options['email_suffix'],
+        'role' => $this->options['userrole'],
+      );
+    }
+    if (!function_exists('wp_insert_user'))
+      include_once ( ABSPATH . WPINC . '/registration.php');
+
+
+    if($userdata)
+    {
+      $user_id = wp_insert_user( $userdata );
+      if ( is_wp_error( $user_id ) ) {
+        //error_log("inserting a user in wp failed");
+        $error_string = $user_id->get_error_message();
+        echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
+        return;
+      }
+      /*
+      if ( !$user_id || !$user) {
+        error_log("This is coming here");
+        $errors['registerfail'] = sprintf(__('<strong>ERROR</strong>: The login system couldn\'t register you in the local database. Please contact the <a href="mailto:%s">webmaster</a> '), get_option('admin_email'));
+        return;
+      } */else {
+        wp_new_user_notification($user_id, $user_pass);
+        wp_set_auth_cookie( $user->ID );
+
+        if( isset( $_GET['redirect_to'] )){
+          wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
+          die();
+        }
+
+        wp_redirect( site_url( '/wp-admin/' ));
+        die();
+      }
+    }
+  }
 
   // hook CAS logout to WP logout
   function logout() {
