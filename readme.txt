@@ -1,3 +1,11 @@
+NOTICE:
+
+Bellevue College has moved in a different direction for SSO and is no longer actively working
+on this repository. If you are looking for a CAS solution for WordPress, try the following:
+
+* https://github.com/uthsc/UTHSC-WPCAS
+
+
 === Fork: wpCAS-with-LDAP ===
 
 This project was forked from http://wordpress.org/support/plugin/wpcas-w-ldap
