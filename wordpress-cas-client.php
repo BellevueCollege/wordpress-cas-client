@@ -3,7 +3,7 @@
 Plugin Name: WordPress CAS Client
 Plugin URI: https://github.com/BellevueCollege/wordpress-cas-client
 Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.2.1.0
+Version: 1.2.2
 Author: Bellevue College
 Author URI: http://www.bellevuecollege.edu
 License: GPL2
@@ -60,12 +60,12 @@ $form_action = "options.php";
 		updateNetworkSettings();
 		add_action( 'network_admin_menu', 'cas_client_settings' );
 
-		error_log("multisite true");
+		//error_log("multisite true");
 		$get_options_func = "get_site_option";
 		$form_action = "";
 	}
-	error_log("version :". $get_options_func('wpcasldap_cas_version'));
-	error_log("version :". $get_options_func('wpcasldap_server_hostname'));
+	//error_log("version :". $get_options_func('wpcasldap_cas_version'));
+	//error_log("version :". $get_options_func('wpcasldap_server_hostname'));
 
 
 
@@ -137,7 +137,7 @@ class wpCASLDAP {
 			// CAS was successful
 
 			if ( $user = get_user_by( 'login', phpCAS::getUser() )){ // user already exists
-					error_log("correct login");
+					//error_log("correct login");
 					// Update user information from ldap
 					if ($wpcasldap_use_options['useldap'] == 'yes' && function_exists('ldap_connect') ) {
 						
@@ -163,7 +163,7 @@ class wpCASLDAP {
 						}
 						else
 						{
-							error_log("existing user returned false");
+							//error_log("existing user returned false");
 						}
 					}
 				$udata = get_userdata($user->ID);
@@ -178,12 +178,12 @@ class wpCASLDAP {
 
 				if( isset( $_GET['redirect_to'] )){
 					wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url(  ));
-					error_log("check if die1 :".$_GET['redirect_to']);
-					error_log("compare returns :".preg_match( '/^http/', $_GET['redirect_to']));
+					//error_log("check if die1 :".$_GET['redirect_to']);
+					//error_log("compare returns :".preg_match( '/^http/', $_GET['redirect_to']));
 
 					die();
 				}
-				error_log("check if die2");		
+				//error_log("check if die2");
 				wp_redirect( site_url( '/wp-admin/' ));
 				die();
 
@@ -191,7 +191,7 @@ class wpCASLDAP {
 				// the CAS user _does_not_have_ a WP account
 				if (function_exists( 'wpcasldap_nowpuser' ) && $wpcasldap_use_options['useradd'] == 'yes')
 				{
-					error_log("check if die3");
+					//error_log("check if die3");
 					wpcasldap_nowpuser( phpCAS::getUser() );
 				}
 					
@@ -247,7 +247,7 @@ function wpcasldap_nowpuser($newuserid) {
 		$newuser = get_ldap_user($newuserid);
 		
 		//echo "<pre>";print_r($newuser);echo "</pre>";
-		error_log("new user value :".$newuserid);
+		//error_log("new user value :".$newuserid);
 		//exit();
 		if($newuser)
 			$userdata = $newuser->get_user_data();
@@ -270,7 +270,7 @@ function wpcasldap_nowpuser($newuserid) {
 	{	
 		$user_id = wp_insert_user( $userdata );
 		if ( is_wp_error( $user_id ) ) {
-			error_log("inserting a user in wp failed");
+			//error_log("inserting a user in wp failed");
 	   		$error_string = $user_id->get_error_message();
 	   		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
 	   		return;
@@ -298,8 +298,8 @@ function wpcasldap_nowpuser($newuserid) {
 function get_ldap_user($uid) {
 	global $wpcasldap_use_options;
 	$ds = ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);//ldap_connect($wpcasldap_use_options['ldaphost'],$wpcasldap_use_options['ldapport']);
-	error_log("host :".$wpcasldap_use_options['ldaphost']);
-	error_log("port :".$wpcasldap_use_options['ldapport']);
+	//error_log("host :".$wpcasldap_use_options['ldaphost']);
+	//error_log("port :".$wpcasldap_use_options['ldapport']);
 	//Can't connect to LDAP.
 	if(!$ds) {
 		$error = 'Error in contacting the LDAP server.';
@@ -318,8 +318,8 @@ function get_ldap_user($uid) {
 			//Connection made -- bind anonymously and get dn for username.
 			$ldaprdn  = $GLOBALS['ldapUser'];     // ldap rdn or dn
 			$ldappass = $GLOBALS['ldapPassword'];  // associated password
-			error_log("username :".$ldaprdn);
-			error_log("password :".$ldappass);
+			//error_log("username :".$ldaprdn);
+			//error_log("password :".$ldappass);
 			//echo "ldap user :".$ldaprdn ;
 			$bind = @ldap_bind($ds,$ldaprdn,$ldappass);
 			//$bind = @ldap_bind($ds);
@@ -594,7 +594,7 @@ function wpcasldap_getoptions() {
 		foreach ($wpcasldap_options as $key => $val) {
 			$out[$key] = $val;	
 		}
-		error_log("OUT :".print_r($out,true));
+		//error_log("OUT :".print_r($out,true));
 	return $out;
 }
 
