@@ -14,7 +14,7 @@
 			$ldaphost = $_POST['wpcasldap_ldaphost'];
 			$ldapport = $_POST['wpcasldap_ldapport'];
 			$useldap = $_POST['wpcasldap_useldap'];
-			$ldapbasedn = $_POST['wpcasldap_ldapbasedn'];	
+			$ldapbasedn = $_POST['wpcasldap_ldapbasedn'];
 
 			 update_site_option('wpcasldap_cas_version',$cas_version);
 			 update_site_option('wpcasldap_include_path',$include_path);
