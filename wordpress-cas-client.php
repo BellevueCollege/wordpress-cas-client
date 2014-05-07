@@ -342,7 +342,7 @@ function wp_cas_ldap_now_puser( $new_user_id ) {
 			echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
 			return;
 		} else {
-			wp_set_auth_cookie( $user->ID );
+			wp_set_auth_cookie( $user_id );
 
 			if ( isset( $_GET['redirect_to'] ) ) {
 				wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url( ) );
