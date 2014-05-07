@@ -237,7 +237,7 @@ class WP_CAS_LDAP {
 			return false;
 		}
 
-		$random_password = substr( md5( uniqid( microtime( ) ) ), 0, 8 );
+		$random_password = generate_password( 32, 64 );
 		echo '<input id="wpcasldap_pass1" type="hidden" name="pass1" value="' . $random_password . '" />';
 		echo '<input id="wpcasldap_pass2" type="hidden" name="pass2" value="' . $random_password . '" />';
 		return false;
@@ -323,10 +323,10 @@ function wp_cas_ldap_now_puser( $new_user_id ) {
 		}
 	} else {
 		$user_data = array(
-			'user_login'    => $new_user_id,
-			'user_password' => substr( md5( uniqid( microtime( ) ) ), 0, 8 ),
-			'user_email'    => $new_user_id . '@' . $wp_cas_ldap_use_options['email_suffix'],
-			'role'          => $wp_cas_ldap_use_options['userrole'],
+			'user_login' => $new_user_id,
+			'user_pass'  => generate_password( 32, 64 ),
+			'user_email' => $new_user_id . '@' . $wp_cas_ldap_use_options['email_suffix'],
+			'role'       => $wp_cas_ldap_use_options['userrole'],
 		);
 	}
 
@@ -473,7 +473,7 @@ class WP_CAS_LDAP_User {
 			}
 			return array(
 				'user_login'    => $this->data[0]['samaccountname'][0],
-				'user_password' => substr( md5 ( uniqid( microtime( ) ) ), 0, 8 ),
+				'user_pass'     => generate_password( 32, 64 ),
 				'user_email'    => $this->data[0]['mail'][0],
 				'first_name'    => $this->data[0]['givenname'][0],
 				'last_name'     => $this->data[0]['sn'][0],
