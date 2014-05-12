@@ -3,7 +3,7 @@
 Plugin Name: WordPress CAS Client
 Plugin URI: https://github.com/BellevueCollege/wordpress-cas-client
 Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.2.2
+Version: 1.2.2.1
 Author: Bellevue College
 Author URI: http://www.bellevuecollege.edu
 License: GPL2
@@ -81,6 +81,8 @@ if ( $wp_cas_ldap_options ) {
 }
 
 $wp_cas_ldap_use_options = wp_cas_ldap_get_options( );
+
+global $cas_configured;
 $cas_configured = true;
 
 // try to configure the phpCAS client
@@ -95,11 +97,13 @@ if ( empty( $wp_cas_ldap_use_options['server_hostname'] ) ||
 	$cas_configured = false;
 }
 
-if ( $cas_configured ) {
+if ( $cas_configured && ! isset( $_SESSION['CAS_INI'] ) ) {
 	phpCAS::client($wp_cas_ldap_use_options['cas_version'],
 		$wp_cas_ldap_use_options['server_hostname'],
 		intval( $wp_cas_ldap_use_options['server_port'] ),
 		$wp_cas_ldap_use_options['server_path']);
+
+	$_SESSION['CAS_INI'] = true;
 
 	/*
 	 * function added in phpCAS v. 0.6.0
