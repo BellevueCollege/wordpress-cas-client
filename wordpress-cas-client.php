@@ -104,36 +104,22 @@ if ( $wp_cas_ldap_options ) {
 $wp_cas_ldap_use_options = wp_cas_ldap_get_options( );
 
 global $cas_configured;
-$cas_configured = true;
+$cas_configured = false;
 
-// try to configure the phpCAS client
-if ( empty( $wp_cas_ldap_use_options['include_path'] ) ||
-    ! include_once( $wp_cas_ldap_use_options['include_path'] ) ) {
-	$cas_configured = false;
-}
-
-if ( empty( $wp_cas_ldap_use_options['server_hostname'] ) ||
-		empty( $wp_cas_ldap_use_options['server_path'] ) ||
-		empty( $wp_cas_ldap_use_options['server_port'] ) ) {
-	$cas_configured = false;
-}
-
-if ( $cas_configured && ! isset( $_SESSION['CAS_INI'] ) ) {
-	phpCAS::client($wp_cas_ldap_use_options['cas_version'],
-		$wp_cas_ldap_use_options['server_hostname'],
-		intval( $wp_cas_ldap_use_options['server_port'] ),
-		$wp_cas_ldap_use_options['server_path']);
-
-	$_SESSION['CAS_INI'] = true;
-
-	/*
-	 * function added in phpCAS v. 0.6.0
-	 * checking for static method existance is frustrating in php4
-	 */
-	$php_cas = new phpCas();
-	if ( method_exists( $php_cas, 'setNoCasServerValidation' ) ) {
+if ( ! class_exists( 'phpCAS' ) ) {
+	if ( ! empty( $wp_cas_ldap_use_options['include_path'] ) &&
+			file_exists( $wp_cas_ldap_use_options['include_path'] ) &&
+			! empty( $wp_cas_ldap_use_options['server_hostname'] ) &&
+			! empty( $wp_cas_ldap_use_options['server_path'] ) &&
+			! empty( $wp_cas_ldap_use_options['server_port'] ) ) {
+		require_once $wp_cas_ldap_use_options['include_path'];
+		phpCAS::client($wp_cas_ldap_use_options['cas_version'],
+			$wp_cas_ldap_use_options['server_hostname'],
+			intval( $wp_cas_ldap_use_options['server_port'] ),
+			$wp_cas_ldap_use_options['server_path']);
 		phpCAS::setNoCasServerValidation( );
+		$cas_configured = true;
 	}
-	unset( $php_cas );
-	// if you want to set a cert, replace the above few lines
+} else {
+	$cas_configured = true;
 }
