@@ -1,118 +1,143 @@
+# Copyright (C) 2014 WordPress CAS Client
+# This file is distributed under the same license as the WordPress CAS Client package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WordPress Cas Client\n"
-"POT-Creation-Date: 2013-09-13 13:58-0800\n"
-"PO-Revision-Date: 2013-09-13 14:04-0800\n"
-"Last-Translator: Erik Steen <erik.steen@bellevuecollege.edu>\n"
-"Language-Team: Bellevue College\n"
+"Project-Id-Version: WordPress CAS Client 1.2.3\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/support/plugin/wordpress-cas-"
+"client\n"
+"POT-Creation-Date: 2014-05-16 17:48:03+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.7\n"
-"X-Poedit-KeywordsList: _e;__\n"
-"X-Poedit-Basepath: .\n"
-"X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-SearchPath-0: .\n"
+"PO-Revision-Date: 2014-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: wordpress-cas-client.php:134 wordpress-cas-client.php:212
+#: includes/class-wp-cas-ldap.php:50 includes/class-wp-cas-ldap.php:119
 msgid "WordPress CAS Client plugin not configured"
 msgstr ""
 
-#: wordpress-cas-client.php:197
+#: includes/class-wp-cas-ldap.php:102
 msgid "you do not have permission here"
 msgstr ""
 
-#: wordpress-cas-client.php:234
+#: includes/class-wp-cas-ldap.php:152
 msgid "Sorry, this feature is disabled."
 msgstr ""
 
-#: wordpress-cas-client.php:610
+#: includes/wp-cas-ldap-options-page.php:46
 msgid "Configuration settings for WordPress CAS Client"
 msgstr ""
 
-#: wordpress-cas-client.php:611
+#: includes/wp-cas-ldap-options-page.php:50
 msgid "Note"
 msgstr ""
 
-#: wordpress-cas-client.php:613
+#: includes/wp-cas-ldap-options-page.php:55
 msgid ""
 "Now that you’ve activated this plugin, WordPress is attempting to "
 "authenticate using CAS, even if it’s not configured or misconfigured."
 msgstr ""
 
-#: wordpress-cas-client.php:614
+#: includes/wp-cas-ldap-options-page.php:57
 msgid ""
 "Save yourself some trouble, open up another browser or use another machine "
 "to test logins. That way you can preserve this session to adjust the "
 "configuration or deactivate the plugin."
 msgstr ""
 
-#: wordpress-cas-client.php:618
+#: includes/wp-cas-ldap-options-page.php:64
 msgid "phpCAS include path"
 msgstr ""
 
-#: wordpress-cas-client.php:620
+#: includes/wp-cas-ldap-options-page.php:70
 msgid ""
 "Note: The phpCAS library is required for this plugin to work. We need to "
 "know the server path to the CAS.php file."
 msgstr ""
 
-#: wordpress-cas-client.php:628
+#: includes/wp-cas-ldap-options-page.php:81
 msgid "CAS.php Path"
 msgstr ""
 
-#: wordpress-cas-client.php:644
+#: includes/wp-cas-ldap-options-page.php:102
 msgid "phpCAS::client() parameters"
 msgstr ""
 
-#: wordpress-cas-client.php:651
+#: includes/wp-cas-ldap-options-page.php:113
 msgid "CAS version"
 msgstr ""
 
-#: wordpress-cas-client.php:668
+#: includes/wp-cas-ldap-options-page.php:140
 msgid "Server Hostname"
 msgstr ""
 
-#: wordpress-cas-client.php:682
+#: includes/wp-cas-ldap-options-page.php:160
 msgid "Server Port"
 msgstr ""
 
-#: wordpress-cas-client.php:696
+#: includes/wp-cas-ldap-options-page.php:180
 msgid "Server Path"
 msgstr ""
 
-#: wordpress-cas-client.php:713
+#: includes/wp-cas-ldap-options-page.php:204
 msgid "Treatment of Unregistered User"
 msgstr ""
 
-#: wordpress-cas-client.php:719
+#: includes/wp-cas-ldap-options-page.php:215
 msgid "Add to Database"
 msgstr ""
 
-#: wordpress-cas-client.php:737
+#: includes/wp-cas-ldap-options-page.php:245
 msgid "Default Role"
 msgstr ""
 
-#: wordpress-cas-client.php:760
+#: includes/wp-cas-ldap-options-page.php:285
 msgid "Use LDAP to get user info"
 msgstr ""
 
-#: wordpress-cas-client.php:785
+#: includes/wp-cas-ldap-options-page.php:320
 msgid "E-mail Suffix"
 msgstr ""
 
-#: wordpress-cas-client.php:801
+#: includes/wp-cas-ldap-options-page.php:345
 msgid "LDAP parameters"
 msgstr ""
 
-#: wordpress-cas-client.php:808
+#: includes/wp-cas-ldap-options-page.php:357
 msgid "LDAP Host"
 msgstr ""
 
-#: wordpress-cas-client.php:821
+#: includes/wp-cas-ldap-options-page.php:379
 msgid "LDAP Port"
 msgstr ""
 
-#: wordpress-cas-client.php:835
+#: includes/wp-cas-ldap-options-page.php:401
 msgid "LDAP Base DN"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "WordPress CAS Client"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "https://github.com/BellevueCollege/wordpress-cas-client"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Integrates WordPress with existing <a href=\"http://en.wikipedia.org/wiki/"
+"Central_Authentication_Service\">CAS</a> single sign-on architectures. "
+"Additionally this plugin can use a LDAP server (such as Active Directory) "
+"for populating user information after the user has successfully logged on to "
+"WordPress. This plugin is a fork of the <a href=\"http://wordpress.org/"
+"extend/plugins/wpcas-w-ldap\">wpCAS-w-LDAP</a> plugin."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Bellevue College"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://www.bellevuecollege.edu"
 msgstr ""
