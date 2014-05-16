@@ -27,7 +27,7 @@ Requires at least: 2.7
 Tested up to: 2.9.2
 Stable tag: trunk
 
-Description: Plugin to integrate WordPress or WordPressMU with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures and <a href="http://en.wikipedia.org/wiki/Ldap">LDAP</a> for grabbing user information. 
+Description: Plugin to integrate WordPress or WordPressMU with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures and <a href="http://en.wikipedia.org/wiki/Ldap">LDAP</a> for grabbing user information.
 
 == Description ==
 
@@ -39,7 +39,7 @@ Based largely on <a href="http://wordpress.org/extend/plugins/wpcas/">wpCAS</a> 
 
 <blockquote>The <b>Central Authentication Service (CAS)</b> is a single sign-on protocol for the web. Its purpose is to permit a user to log into multiple applications simultaneously and automatically. It also allows untrusted web applications to authenticate users without gaining access to a user's security credentials, such as a password. The name CAS also refers to a software package that implements this protocol.</blockquote>
 
-Users who attempt to login to WordPress are redirected to the central CAS sign-on screen. After the user's credentials are verified, s/he is then redirected back to the WordPress site. If the CAS username matches the WordPress username, the user is recognized as valid and allowed access. 
+Users who attempt to login to WordPress are redirected to the central CAS sign-on screen. After the user's credentials are verified, s/he is then redirected back to the WordPress site. If the CAS username matches the WordPress username, the user is recognized as valid and allowed access.
 
 <a href="http://en.wikipedia.org/wiki/AuthZ">Authorization</a> of that user's capabilities is based on native WordPress settings and functions. CAS only authenticates that the user is who s/he claims to be.
 
@@ -61,7 +61,7 @@ LDAP is included as an option for getting user information when they are being a
 1. The plugin starts intercepting authentication attempts as soon as you activate it. Use another browser or another computer to test the configuration.
 
 = wpcasldap-conf.php =
-wpCAS-w-LDAP can be configured either via the settings page in the WordPress dashboard, or via a configuration file. See `wpcasldap-conf-sample.php` for an example. If a config file is used, it overrides any settings that might have been made via the settings page and configured portion of that page are hidden. 
+wpCAS-w-LDAP can be configured either via the settings page in the WordPress dashboard, or via a configuration file. See `wpcasldap-conf-sample.php` for an example. If a config file is used, it overrides any settings that might have been made via the settings page and configured portion of that page are hidden.
 
 Use of `wpcasldap-conf.php` is recommended for the CAS and LDAP portions of an WordPressMU installations, as doing so hides the settings menu from users. The option to use LDAP, add users, and default role can be left to blog administrators.
 
