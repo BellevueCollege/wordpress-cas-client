@@ -106,6 +106,19 @@ $wp_cas_ldap_use_options = wp_cas_ldap_get_options( );
 global $cas_configured;
 $cas_configured = false;
 
+/*
+ * Check to see if the phpCAS class exists in our environment. If it doesn't
+ * then check to see if we have all the configuration variables we need to
+ * configure phpCAS. If we do then import the phpCAS library and call the
+ * phpCAS::client() method.
+ *
+ * NOTE: This assumes that if the phpCAS class does exist in the environment
+ *       that the method phpCAS::client() has been already called by another
+ *       piece of code elsewhere. If the client method has not been invoked but
+ *       the phpCAS class has been imported into the environment anyway then
+ *       this logic would cause the other phpCAS methods to fail when called
+ *       later in this plugin.
+ */
 if ( ! class_exists( 'phpCAS' ) ) {
 	if ( ! empty( $wp_cas_ldap_use_options['include_path'] ) &&
 			file_exists( $wp_cas_ldap_use_options['include_path'] ) &&
