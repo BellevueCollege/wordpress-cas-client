@@ -119,11 +119,13 @@ function get_ldap_user( $uid ) {
 						'cn',
 						'EmployeeID',
 						'sAMAccountName',
-					)
+					),0
 				);
-				$info = ldap_get_entries( $ds, $search );
-
-				return new WP_CAS_LDAP_User( $info );
+                if($search)
+                {
+                    $info = ldap_get_entries( $ds, $search );
+                    return new WP_CAS_LDAP_User( $info );
+                }
 			}
 		}
 		ldap_close( $ds );
