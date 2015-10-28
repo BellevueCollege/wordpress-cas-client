@@ -40,7 +40,7 @@ function wp_cas_ldap_now_puser( $new_user_id ) {
 		$new_user = get_ldap_user( $new_user_id );
 
 		if ( $new_user ) {
-			$user_data = $new_user->get_user_data( );
+			$user_data = $new_user->get_user_data();
 		} else {
 			error_log( 'User not found on LDAP Server: ' . $new_user_id );
 		}
@@ -96,36 +96,40 @@ function get_ldap_user( $uid ) {
 		if ( ! ldap_set_option( $ds, LDAP_OPT_PROTOCOL_VERSION, 3 ) ) {
 			error_log( 'Failed to set LDAP protocol to version 3.' );
 		} else {
-			// Get LDAP service sccount username
-			$ldap_user = $GLOBALS['ldapUser'];
-			// Get service account associated password
-			$ldap_pass = $GLOBALS['ldapPassword'];
-			$bind = ldap_bind( $ds, $ldap_user, $ldap_pass );
-
-			//Check to make sure we're bound.
-			if ( ! $bind ) {
-				error_log( 'LDAP Bind failed with Service Account: ' . $ldap_user );
+			// Do not allow referrals, per MS recommendation
+			if ( ! ldap_set_option( $ds, LDAP_OPT_REFERRALS, 0 ) ) {
+				error_log( 'Failed to set LDAP Referrals to False.' );
 			} else {
-				$search = ldap_search(
-					$ds,
-					$wp_cas_ldap_use_options['ldapbasedn'],
-					'sAMAccountName=' . $uid,
-					array(
-						'uid',
-						'mail',
-						'givenname',
-						'sn',
-						'rolename',
-						'cn',
-						'EmployeeID',
-						'sAMAccountName',
-					),0
-				);
-                if($search)
-                {
-                    $info = ldap_get_entries( $ds, $search );
-                    return new WP_CAS_LDAP_User( $info );
-                }
+				// Get LDAP service sccount username
+				$ldap_user = $GLOBALS['ldapUser'];
+				// Get service account associated password
+				$ldap_pass = $GLOBALS['ldapPassword'];
+				$bind = ldap_bind( $ds, $ldap_user, $ldap_pass );
+
+				//Check to make sure we're bound.
+				if ( ! $bind ) {
+					error_log( 'LDAP Bind failed with Service Account: ' . $ldap_user );
+				} else {
+					$search = ldap_search(
+						$ds,
+						$wp_cas_ldap_use_options['ldapbasedn'],
+						'sAMAccountName=' . $uid,
+						array(
+							'uid',
+							'mail',
+							'givenname',
+							'sn',
+							'rolename',
+							'cn',
+							'EmployeeID',
+							'sAMAccountName',
+						),0
+					);
+					if($search) {
+						$info = ldap_get_entries( $ds, $search );
+						return new WP_CAS_LDAP_User( $info );
+					}
+				}
 			}
 		}
 		ldap_close( $ds );

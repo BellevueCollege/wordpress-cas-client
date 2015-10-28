@@ -3,7 +3,7 @@
 Plugin Name: WordPress CAS Client
 Plugin URI: https://github.com/BellevueCollege/wordpress-cas-client
 Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.3
+Version: 1.3.1
 Author: Bellevue College
 Author URI: http://www.bellevuecollege.edu
 License: GNU General Public License v2 or later
