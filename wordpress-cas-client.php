@@ -3,7 +3,7 @@
 Plugin Name: WordPress CAS Client
 Plugin URI: https://github.com/BellevueCollege/wordpress-cas-client
 Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.3.1
+Version: 1.3.1.1
 Author: Bellevue College
 Author URI: http://www.bellevuecollege.edu
 License: GNU General Public License v2 or later
@@ -93,6 +93,14 @@ add_action( 'lost_password', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_action( 'retrieve_password', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_action( 'password_reset', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_filter( 'show_password_fields', array( 'WP_CAS_LDAP', 'show_password_fields' ) );
+
+/*
+ * Prevent 'Password Changed' email from being sent
+ *
+ * Email was introduced in WordPress 4.3, and was sent on every login
+ * due to password being programatically changed as needed.
+ */
+add_filter( 'send_password_change_email', '__return_false' );
 
 global $wp_cas_ldap_options;
 if ( $wp_cas_ldap_options ) {
