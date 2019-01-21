@@ -67,7 +67,7 @@ function wp_cas_ldap_options_page( ) {
 <p>
 <?php
 		echo '<small><em>';
-		_e( 'Note: The phpCAS library is required for this plugin to work. We need to know the server path to the CAS.php file.', 'wpcasldap' );
+		_e( 'Note: The phpCAS library is required for this plugin to work. We need to know the server absolute path to the CAS.php file.', 'wpcasldap' );
 		echo '</em></small>';
 ?>
 </p>
