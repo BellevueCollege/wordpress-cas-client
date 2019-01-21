@@ -70,7 +70,11 @@ class WP_CAS_LDAP_User {
 			return array(
 				'user_login'    => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']),
 				'user_pass'     => generate_password( 32, 64 ),
-				'user_email'    => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_email_attr'], $wp_cas_ldap_use_options['ldap_map_alt_email_attr']),
+				'user_email'    => $this -> get_user_attr(
+					$wp_cas_ldap_use_options['ldap_map_email_attr'],
+					$wp_cas_ldap_use_options['ldap_map_alt_email_attr'],
+					($wp_cas_ldap_use_options['email_suffix']?$this->get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']). '@' . $wp_cas_ldap_use_options['email_suffix']:null)
+				),
 				'first_name'    => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_first_name_attr']),
 				'last_name'     => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_last_name_attr']),
 				'role'          => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_role_attr'], null, $wp_cas_ldap_use_options['userrole']),
