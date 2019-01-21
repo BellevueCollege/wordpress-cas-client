@@ -60,9 +60,10 @@ function wp_cas_ldap_register_settings( ) {
 	foreach ( $options as $o ) {
 		if ( ! isset( $wp_cas_ldap_options[ $o ] ) ) {
 			switch ( $o ) {
-				case 'cas_verion':
+				case 'cas_version':
 					$cleaner = 'wp_cas_ldap_one_or_two';
 					break;
+				case 'useradd':
 				case 'useldap':
 					$cleaner = 'wp_cas_ldap_yes_or_no';
 					break;
