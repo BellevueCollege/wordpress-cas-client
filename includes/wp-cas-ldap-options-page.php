@@ -112,7 +112,7 @@ function wp_cas_ldap_options_page( ) {
 <?php
 		_e( 'CAS version', 'wpcasldap' );
 ?>
-				</lable>
+				</label>
 			</th>
 
 			<td>
@@ -214,7 +214,7 @@ function wp_cas_ldap_options_page( ) {
 <?php
 			_e( 'Add to Database', 'wpcasldap' );
 ?>
-					</lable>
+					</label>
 				</th>
 
 				<td>
@@ -224,13 +224,13 @@ function wp_cas_ldap_options_page( ) {
 			echo ( 'yes' === $option_array_def['useradd'] ) ? 'checked="checked"' : '';
 			echo ' />';
 ?>
-					<label for="useradd_yes">Yes &nbsp;</label>
+					<label for="useradd_yes"><?php _e( 'Yes', 'wpcasldap' ); ?> &nbsp;</label>
 <?php
 			echo '<input type="radio" name="wpcasldap_useradd" id="useradd_no" value="no" ';
 			echo ( 'yes' !== $option_array_def['useradd'] ) ? 'checked="checked"' : '';
 			echo ' />';
 ?>
-					<label for="useradd_no">No &nbsp;</label>
+					<label for="useradd_no"><?php _e( 'No', 'wpcasldap' ); ?> &nbsp;</label>
 				</td>
 			</tr>
 <?php
@@ -271,6 +271,14 @@ function wp_cas_ldap_options_page( ) {
 						echo '>Administrator</option>';
 ?>
 	                </select>
+<p>
+<?php
+		echo '<small><em>';
+		_e( "Note: This default role is only used to create user on it's first connection. After, the user role have to be configured in Wordpress and will not be override from LDAP.", 'wpcasldap' );
+		echo '</em></small>';
+?>
+</p>
+
 	            </td>
 			</tr>
 <?php
@@ -293,14 +301,14 @@ function wp_cas_ldap_options_page( ) {
 			echo ( 'yes' === $option_array_def['useldap'] ) ? 'checked="checked"' : '';
 			echo ' />';
 ?>
-						<label for="useldap_yes">Yes &nbsp;</label>
+						<label for="useldap_yes"><?php _e( 'Yes', 'wpcasldap' ); ?> &nbsp;</label>
 
 <?php
 			echo '<input type="radio" name="wpcasldap_useldap" id="useldap_no" value="no" ';
 			echo ( 'yes' !== $option_array_def['useldap'] ) ? 'checked="checked"' : '';
 			echo ' />';
 ?>
-						<label for="useldap_no">No &nbsp;</label>
+						<label for="useldap_no"><?php _e( 'No', 'wpcasldap' ); ?> &nbsp;</label>
 					</td>
 				</tr>
 <?php
@@ -327,6 +335,9 @@ function wp_cas_ldap_options_page( ) {
 		echo '<input type="text" size="50" name="wpcasldap_email_suffix" id="server_port_inp" value="';
 		echo $option_array_def['email_suffix'];
 		echo '" />';
+		echo '<p><small><em>';
+		_e( "Note: This suffix is used to compose user email if it's could not be retreived from LDAP. You only have to enter the email domain name (without the '@').", 'wpcasldap' );
+		echo '</em></small></p>';
 ?>
 				</td>
 			</tr>
@@ -418,6 +429,9 @@ function wp_cas_ldap_options_page( ) {
 			echo '<h4>';
 			_e( 'LDAP attributes mapping', 'wpcasldap' );
 			echo '</h4>';
+			echo '<p>';
+			_e( "You have to configure here which LDAP attributes could be map with Wordpress user profil information.", 'wpcasldap' );
+			echo '</p>';
 ?>
 	<table class="form-table">
 <?php
