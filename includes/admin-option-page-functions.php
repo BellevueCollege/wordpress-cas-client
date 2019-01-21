@@ -47,6 +47,14 @@ function wp_cas_ldap_register_settings( ) {
 		'ldapport',
 		'ldapbasedn',
 		'useldap',
+		'ldap_map_login_attr',
+		'ldap_map_email_attr',
+		'ldap_map_alt_email_attr',
+		'ldap_map_first_name_attr',
+		'ldap_map_last_name_attr',
+		'ldap_map_role_attr',
+		'ldap_map_nickname_attr',
+		'ldap_map_nicename_attr',
 	);
 
 	foreach ( $options as $o ) {
@@ -66,6 +74,16 @@ function wp_cas_ldap_register_settings( ) {
 					break;
 				case 'server_port':
 					$cleaner = 'intval';
+					break;
+				case 'ldap_map_login_attr':
+				case 'ldap_map_email_attr':
+				case 'ldap_map_alt_email_attr':
+				case 'ldap_map_first_name_attr':
+				case 'ldap_map_last_name_attr':
+				case 'ldap_map_role_attr':
+				case 'ldap_map_nickname_attr':
+				case 'ldap_map_nicename_attr':
+					$cleaner = 'wp_cas_ldap_fix_attr_name';
 					break;
 				default:
 					$cleaner = 'wp_cas_ldap_dummy';
@@ -129,6 +147,16 @@ function wp_cas_ldap_fix_user_role( $in ) {
 }
 
 /**
+ * wp_cas_ldap_fix_attr_name function
+ *
+ * @param string $in value is an LDAP attribute name
+ * @return string value will be a valid LDAP attribute name
+ */
+function wp_cas_ldap_fix_attr_name( $in ) {
+	return preg_replace('/[^a-zA-Z0-9]/', '', $in);
+}
+
+/**
  * wp_cas_ldap_dummy function
  *
  * @param string $in domain suffix in email address.
@@ -186,18 +214,26 @@ function wp_cas_ldap_get_options( ) {
 	global $get_options_func;
 
 	$out = array (
-		'email_suffix'    => $get_options_func( 'wpcasldap_email_suffix' ),
-		'cas_version'     => $get_options_func( 'wpcasldap_cas_version' ),
-		'include_path'    => $get_options_func( 'wpcasldap_include_path' ),
-		'server_hostname' => $get_options_func( 'wpcasldap_server_hostname' ),
-		'server_port'     => $get_options_func( 'wpcasldap_server_port' ),
-		'server_path'     => $get_options_func( 'wpcasldap_server_path' ),
-		'useradd'         => $get_options_func( 'wpcasldap_useradd' ),
-		'userrole'        => $get_options_func( 'wpcasldap_userrole' ),
-		'ldaphost'        => $get_options_func( 'wpcasldap_ldaphost' ),
-		'ldapport'        => $get_options_func( 'wpcasldap_ldapport' ),
-		'useldap'         => $get_options_func( 'wpcasldap_useldap' ),
-		'ldapbasedn'      => $get_options_func( 'wpcasldap_ldapbasedn' ),
+		'email_suffix'    		=> $get_options_func( 'wpcasldap_email_suffix' ),
+		'cas_version'     		=> $get_options_func( 'wpcasldap_cas_version' ),
+		'include_path'    		=> $get_options_func( 'wpcasldap_include_path' ),
+		'server_hostname' 		=> $get_options_func( 'wpcasldap_server_hostname' ),
+		'server_port'     		=> $get_options_func( 'wpcasldap_server_port' ),
+		'server_path'     		=> $get_options_func( 'wpcasldap_server_path' ),
+		'useradd'         		=> $get_options_func( 'wpcasldap_useradd' ),
+		'userrole'        		=> $get_options_func( 'wpcasldap_userrole' ),
+		'ldaphost'        		=> $get_options_func( 'wpcasldap_ldaphost' ),
+		'ldapport'        		=> $get_options_func( 'wpcasldap_ldapport' ),
+		'useldap'         		=> $get_options_func( 'wpcasldap_useldap' ),
+		'ldapbasedn'      		=> $get_options_func( 'wpcasldap_ldapbasedn' ),
+		'ldap_map_login_attr'		=> $get_options_func( 'wpcasldap_ldap_map_login_attr', 'samaccountname'),
+		'ldap_map_email_attr'		=> $get_options_func( 'wpcasldap_ldap_map_email_attr', 'mail'),
+		'ldap_map_alt_email_attr'	=> $get_options_func( 'wpcasldap_ldap_map_alt_email_attr'),
+		'ldap_map_first_name_attr'	=> $get_options_func( 'wpcasldap_ldap_map_first_name_attr', 'givenname'),
+		'ldap_map_last_name_attr'	=> $get_options_func( 'wpcasldap_ldap_map_last_name_attr', 'sn'),
+		'ldap_map_role_attr'		=> $get_options_func( 'wpcasldap_ldap_map_role_attr'),
+		'ldap_map_nickname_attr'	=> $get_options_func( 'wpcasldap_ldap_map_nickname_attr', 'cn'),
+		'ldap_map_nicename_attr'	=> $get_options_func( 'wpcasldap_ldap_map_nicename_attr'),
 	);
 
 	if ( is_array( $wp_cas_ldap_options ) && 0 < count( $wp_cas_ldap_options ) ) {

@@ -415,6 +415,49 @@ function wp_cas_ldap_options_page( ) {
 ?>
 	</table>
 <?php
+			echo '<h4>';
+			_e( 'LDAP attributes mapping', 'wpcasldap' );
+			echo '</h4>';
+?>
+	<table class="form-table">
+<?php
+	$map_attrs = array(
+			'login' => 'login',
+			'first_name' => 'first name',
+			'last_name' => 'last name',
+			'nickname' => 'nickname',
+			'nicename' => 'nice name',
+			'role' => 'role',
+			'email' => 'email',
+			'alt_email' => 'alternative email',
+	);
+	foreach($map_attrs as $key => $label) {
+		if (! isset( $wp_cas_ldap_options['ldap_map_'.$key.'_attr'] )) {
+?>
+                <tr valign="top">
+                        <th scope="row">
+                                <label>
+<?php
+                                _e( 'LDAP map attribute', 'wpcasldap' );
+				echo " ";
+                                _e( $label, 'wpcasldap' );
+?>
+                                </label>
+                        </th>
+                        <td>
+<?php
+                                echo '<input type="text" size="50" name="wpcasldap_ldap_map_'.$key.'_attr" id="ldap_map_'.$key.'_attr" value="';
+                                echo $option_array_def['ldap_map_'.$key.'_attr'];
+                                echo '" />';
+?>
+                        </td>
+                </tr>
+<?php
+		}
+	}
+?>
+	</table>
+<?php
 		}
 	}
 ?>

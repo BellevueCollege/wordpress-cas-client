@@ -81,11 +81,11 @@ function wp_cas_ldap_now_puser( $new_user_id ) {
 /**
  * get_ldap_user function
  *
- * @param string $uid ldap sAMAccountName value to match
+ * @param string $login User login
  * @return false|WP_CAS_LDAP_User returns WP_CAS_LDAP_User object as long as user is
  *                             found on the ldap server, otherwise false.
  */
-function get_ldap_user( $uid ) {
+function get_ldap_user( $login ) {
 	global $wp_cas_ldap_use_options;
 	$ds = ldap_connect( $wp_cas_ldap_use_options['ldaphost'], $wp_cas_ldap_use_options['ldapport'] );
 	//Can't connect to LDAP.
@@ -113,21 +113,34 @@ function get_ldap_user( $uid ) {
 					$search = ldap_search(
 						$ds,
 						$wp_cas_ldap_use_options['ldapbasedn'],
-						'sAMAccountName=' . $uid,
+						$wp_cas_ldap_use_options['ldap_map_login_attr'] . '=' . $login,
 						array(
-							'uid',
-							'mail',
-							'givenname',
-							'sn',
-							'rolename',
-							'cn',
-							'EmployeeID',
-							'sAMAccountName',
-						),0
+							$wp_cas_ldap_use_options['ldap_map_login_attr'],
+							$wp_cas_ldap_use_options['ldap_map_email_attr'],
+							$wp_cas_ldap_use_options['ldap_map_alt_email_attr'],
+							$wp_cas_ldap_use_options['ldap_map_first_name_attr'],
+							$wp_cas_ldap_use_options['ldap_map_last_name_attr'],
+							$wp_cas_ldap_use_options['ldap_map_role_attr'],
+							$wp_cas_ldap_use_options['ldap_map_nickname_attr'],
+							$wp_cas_ldap_use_options['ldap_map_nicename_attr'],
+						),
+						0
 					);
 					if($search) {
-						$info = ldap_get_entries( $ds, $search );
-						return new WP_CAS_LDAP_User( $info );
+						$count = ldap_count_entries( $ds, $search);
+						if ($count == 1) {
+							$entry = ldap_first_entry( $ds, $search );
+							return new WP_CAS_LDAP_User(
+								ldap_get_dn( $ds, $entry),
+								ldap_get_attributes( $ds, $entry)
+							);
+						}
+						else {
+							error_log("Duplicated users found in LDAP for login '$login'.");
+						}
+					}
+					else {
+						error_log("User not found in LDAP for login '$login'.");
 					}
 				}
 			}
