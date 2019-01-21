@@ -56,7 +56,8 @@ define( 'CAS_CLIENT_ROOT', dirname( __FILE__ ) );
 require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/admin-option-page-functions.php';
 require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/class-wp-cas-ldap.php';
 require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/update-network-settings.php';
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/config.php';
+if (file_exists(constant( 'CAS_CLIENT_ROOT' ) . '/config.php'))
+	require_once constant( 'CAS_CLIENT_ROOT' ) . '/config.php';
 
 /*
  * Configure plugin WordPress Hooks
