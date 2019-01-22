@@ -474,6 +474,54 @@ function wp_cas_ldap_options_page( ) {
 <?php
 		}
 	}
+
+	if ( ! isset( $wp_cas_ldap_options['who_can_view'] ) ) {
+
+		echo '<h4>';
+		_e( 'Site access restriction', 'wpcasldap' );
+		echo '</h4>';
+?>
+	<p>
+	<?php _e( "You could restrict access to the public web site here :", 'wpcasldap' ); ?>
+	<ul style="list-style-type: disc; padding-left: 1em;">
+		<li><?php _e( "If you choose to allow access only to <em>CAS authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress only if he already has an account." ); ?></li>
+		<li><?php _e( "If you choose to allow access only to <em>Wordpress authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress if he already has an account or if you choose to allow adding user in database. Otherwise, the access will be denied." ); ?></li>
+		<li><?php _e( "If you choose to allow access to <em>Everyone</em>, no restriction will be apply."); ?></li>
+	</ul>
+	</p>
+
+	<table class="form-table">
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+		_e( 'Restrict site access to', 'wpcasldap' );
+?>
+				</label>
+			</th>
+
+			<td>
+				<select name="wpcasldap_who_can_view" id="who_can_view">
+<?php
+		echo '<option value="everyone" '.( 'everyone' === $option_array_def['who_can_view'] ? 'selected' : '').'>';
+		_e( 'Everyone', 'wpcasldap' );
+		echo '</option>';
+
+		echo '<option value="cas_authenticated_users" '.( 'cas_authenticated_users' === $option_array_def['who_can_view'] ? 'selected' : '').'>';
+		_e( 'CAS authenticated users', 'wpcasldap' );
+		echo '</option>';
+
+		echo '<option value="wordpress_authenticated_users" '.( 'wordpress_authenticated_users' === $option_array_def['who_can_view'] ? 'selected' : '').'>';
+		_e( 'Wordpress authenticated users', 'wpcasldap' );
+		echo '</option>';
+
+?>
+				</select>
+			</td>
+		</tr>
+	</table>
+<?php
+	}
 ?>
 	<div class="submit">
 		<input type="submit" name="wpcasldap_submit" value="Save" />

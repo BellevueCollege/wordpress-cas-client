@@ -55,6 +55,7 @@ function wp_cas_ldap_register_settings( ) {
 		'ldap_map_role_attr',
 		'ldap_map_nickname_attr',
 		'ldap_map_nicename_attr',
+		'who_can_view',
 	);
 
 	foreach ( $options as $o ) {
@@ -85,6 +86,9 @@ function wp_cas_ldap_register_settings( ) {
 				case 'ldap_map_nickname_attr':
 				case 'ldap_map_nicename_attr':
 					$cleaner = 'wp_cas_ldap_fix_attr_name';
+					break;
+				case 'who_can_view':
+					$cleaner = 'wp_cas_ldap_fix_who_can_view';
 					break;
 				default:
 					$cleaner = 'wp_cas_ldap_dummy';
@@ -155,6 +159,19 @@ function wp_cas_ldap_fix_user_role( $in ) {
  */
 function wp_cas_ldap_fix_attr_name( $in ) {
 	return preg_replace('/[^a-zA-Z0-9]/', '', $in);
+}
+
+/**
+ * wp_cas_ldap_fix_who_can_view function
+ *
+ * @param string $in value is the who_can_view parameter value
+ * @return string value will be a 'cas_authenticated_users',
+ *                'wordpress_authenticated_users' or 'everyone'.
+ */
+function wp_cas_ldap_fix_who_can_view( $in ) {
+	if ($in == 'cas_authenticated_users' || $in == 'wordpress_authenticated_users')
+		return $in;
+	return 'everyone';
 }
 
 /**
@@ -235,6 +252,7 @@ function wp_cas_ldap_get_options( ) {
 		'ldap_map_role_attr'		=> $get_options_func( 'wpcasldap_ldap_map_role_attr'),
 		'ldap_map_nickname_attr'	=> $get_options_func( 'wpcasldap_ldap_map_nickname_attr', 'cn'),
 		'ldap_map_nicename_attr'	=> $get_options_func( 'wpcasldap_ldap_map_nicename_attr'),
+		'who_can_view'			=> $get_options_func( 'wpcasldap_who_can_view', 'everyone'),
 	);
 
 	if ( is_array( $wp_cas_ldap_options ) && 0 < count( $wp_cas_ldap_options ) ) {

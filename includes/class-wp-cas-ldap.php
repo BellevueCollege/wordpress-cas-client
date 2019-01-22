@@ -44,68 +44,29 @@ class WP_CAS_LDAP {
 	 * wp_cas_ldap_now_puser() is called.
 	 */
 	function authenticate( ) {
-		global $wp_cas_ldap_use_options, $cas_configured, $blog_id;
+		global $wp_cas_ldap_use_options, $blog_id;
 
-		if ( ! $cas_configured ) {
-			exit( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ) );
-		}
+		$cas_user = authenticate_cas_user();
 
-		if ( phpCAS::isAuthenticated( ) ) {
-			// CAS was successful
+		$user = get_user_by( 'login', $cas_user );
+		// If user already exists
+		if ( $user ) {
+			update_and_auth_user($cas_user, $user);
 
-			$user = get_user_by( 'login', phpCAS::getUser( ) );
-			// If user already exists
-			if ( $user ) {
-					// Update user information from ldap
-					if ( 'yes' === $wp_cas_ldap_use_options['useldap'] && function_exists( 'ldap_connect' ) ) {
-
-						$existing_user = get_ldap_user( phpCAS::getUser( ) );
-						if ( $existing_user ) {
-							$user_data = $existing_user->get_user_data( );
-							$user_data['ID'] = $user->ID;
-
-							//Remove role from userdata
-							unset( $user_data['role'] );
-
-							$user_id = wp_update_user( $user_data );
-
-							if ( is_wp_error( $user_id ) ) {
-								$error_string = $user_id->get_error_message( );
-								error_log( 'Update user failed: ' . $error_string );
-								echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
-							}
-						}
-					}
-
-				$user_exists = is_user_member_of_blog( $user->ID, $blog_id );
-				if ( ! $user_exists ) {
-					if ( function_exists( 'add_user_to_blog' ) ) {
-						add_user_to_blog( $blog_id, $user->ID, $wp_cas_ldap_use_options['userrole'] );
-					}
-				}
-
-				// the CAS user has a WP account
-				wp_set_auth_cookie($user->ID);
-
-				if ( isset( $_GET['redirect_to'] ) ) {
-					wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url( ) );
-					exit( );
-				}
-				wp_redirect( site_url( '/wp-admin/' ) );
+			if ( isset( $_GET['redirect_to'] ) ) {
+				wp_redirect( preg_match( '/^http/', $_GET['redirect_to'] ) ? $_GET['redirect_to'] : site_url( ) );
 				exit( );
-
-			} else {
-				// the CAS user _does_not_have_ a WP account
-				if ( function_exists( 'wp_cas_ldap_now_puser' ) && 'yes' === $wp_cas_ldap_use_options['useradd'] ) {
-					wp_cas_ldap_now_puser( phpCAS::getUser( ) );
-				} else {
-					exit( __( 'you do not have permission here', 'wpcasldap' ) );
-				}
 			}
-		} else {
-			// Authenticate the user
-			phpCAS::forceAuthentication( );
+			wp_redirect( site_url( '/wp-admin/' ) );
 			exit( );
+
+		} else {
+			// the CAS user _does_not_have_ a WP account
+			if ( function_exists( 'wp_cas_ldap_now_puser' ) && 'yes' === $wp_cas_ldap_use_options['useradd'] ) {
+				wp_cas_ldap_now_puser( $cas_user );
+			} else {
+				exit( __( 'you do not have permission here', 'wpcasldap' ) );
+			}
 		}
 	}
 
@@ -150,5 +111,109 @@ class WP_CAS_LDAP {
 	*/
 	function disable_function( ) {
 		exit( __( 'Sorry, this feature is disabled.', 'wpcasldap' ) );
+	}
+
+	/*
+	 * restrict_access method hook for WordPress.
+	 *
+	 * Retrict access to site based on 'who_can_view' parameter.
+	 */
+	public function restrict_access( $wp ) {
+		global $wp_cas_ldap_use_options;
+
+		// No restriction on everyone mode
+		if (!isset($wp_cas_ldap_use_options['who_can_view']) || $wp_cas_ldap_use_options['who_can_view'] == 'everyone') {
+			return $wp;
+		}
+
+		// Allow some generic cas (inspired by Wordpress Authorizer plugin)
+		if (
+				// Always allow access if WordPress is installing.
+				// phpcs:ignore WordPress.CSRF.NonceVerification.NoNonceVerification
+				( defined( 'WP_INSTALLING' ) && isset( $_GET['key'] ) ) ||
+				// Allow access for requests to /wp-json/oauth1 so oauth clients can authenticate to use the REST API.
+				( property_exists( $wp, 'matched_query' ) && stripos( $wp->matched_query, 'rest_oauth1=' ) === 0 ) ||
+				// Allow access for non-GET requests to /wp-json/*, since REST API authentication already covers them.
+				( property_exists( $wp, 'matched_query' ) && 0 === stripos( $wp->matched_query, 'rest_route=' ) && isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) ||
+				// Allow access for GET requests to /wp-json/ (root), since REST API discovery calls rely on this.
+				( property_exists( $wp, 'matched_query' ) && 'rest_route=/' === $wp->matched_query )
+		)
+			return $wp;
+
+		// User is already logged in ?
+		if (is_user_logged_in()) {
+			// Allow access in 'cas_authenticated_users' mode
+			if ( $wp_cas_ldap_use_options['who_can_view'] == 'cas_authenticated_users' ) {
+				return $wp;
+			}
+
+			// So we are in wordpress_authenticated_users mode
+
+			// Always allow access to admins.
+			if ( current_user_can( 'create_users' ) )
+				return $wp;
+
+			// Allow access if user is member of the current blog
+			if (is_user_member_of_blog( get_current_user_id() ))
+				return $wp;
+			else
+				wp_die( '<p>Access denied.</p>', 'Site Access Restricted' );
+		}
+
+		// Auth user via CAS
+		$cas_user = authenticate_cas_user();
+
+		// User already exists in Wordpress ?
+		$user = get_user_by( 'login', $cas_user );
+		if ( $user ) {
+			// Update user and allow access
+			update_and_auth_user($cas_user, $user);
+			return $wp;
+		}
+		elseif ( $wp_cas_ldap_use_options['who_can_view'] == 'cas_authenticated_users' ) {
+			// Allow user only in 'cas_authenticated_users' mode
+			return $wp;
+		}
+		elseif ('yes' === $wp_cas_ldap_use_options['useradd']) {
+			// Wordpress user account could be created
+			wp_cas_ldap_now_puser( $cas_user );
+			return $wp;
+		}
+
+		// Deny access
+		self :: deny_access();
+	}
+
+	/**
+	 * Deny access to user : show them the error message. Render as JSON
+         * if this is a REST API call; otherwise, show the error message via
+         * wp_die() (rendered html), or redirect to the login URL.
+         **/
+	function deny_access() {
+		$deny_access_message = __( 'Access to this site is restricted.', 'wpcasldap' );
+		$current_path = ! empty( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url();
+		if ( property_exists( $wp, 'matched_query' ) && stripos( $wp->matched_query, 'rest_route=' ) === 0 && 'GET' === $_SERVER['REQUEST_METHOD'] ) {
+			wp_send_json(
+				array(
+					'code'    => 'rest_cannot_view',
+					'message' => $deny_access_message,
+					'data'    => array(
+						'status' => 401,
+					),
+				)
+			);
+		}
+		else {
+			$page_title = sprintf(
+				/* TRANSLATORS: %s: Name of blog */
+				__( '%s - Access Restricted', 'wpcasldap' ),
+				get_bloginfo( 'name' )
+			);
+			$error_message = apply_filters( 'the_content', $deny_access_message );
+			wp_die( wp_kses( $error_message, $this->allowed_html ), esc_html( $page_title ) );
+		}
+
+		// Sanity check: we should never get here.
+		wp_die( '<p>Access denied.</p>', 'Site Access Restricted' );
 	}
 }

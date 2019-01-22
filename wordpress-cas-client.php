@@ -95,6 +95,8 @@ add_action( 'retrieve_password', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_action( 'password_reset', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_filter( 'show_password_fields', array( 'WP_CAS_LDAP', 'show_password_fields' ) );
 
+add_action( 'parse_request', array( 'WP_CAS_LDAP', 'restrict_access' ), 9 );
+
 /*
  * Prevent 'Password Changed' email from being sent
  *

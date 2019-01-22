@@ -29,6 +29,69 @@
 require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/generate-password.php';
 
 /**
+ * authenticate_cas_user function
+ *
+ * Authenticate user via CAS
+ *
+ * @retval string|void The login of the authenticated CAS user
+ **/
+function authenticate_cas_user() {
+	global $wp_cas_ldap_use_options, $cas_configured, $blog_id;
+
+	if ( ! $cas_configured ) {
+		exit( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ) );
+	}
+
+	if ( phpCAS::isAuthenticated() ) {
+		// CAS was successful
+		return phpCAS::getUser();
+	} else {
+		// Authenticate the user
+		phpCAS::forceAuthentication();
+		exit();
+	}
+}
+
+/**
+ * Update and authenticated user
+ *
+ * @retval void
+ */
+function update_and_auth_user($cas_user, $wordpress_user) {
+	global $wp_cas_ldap_use_options;
+
+	// Update user information from ldap
+	if ( 'yes' === $wp_cas_ldap_use_options['useldap'] && function_exists( 'ldap_connect' ) ) {
+		$existing_user = get_ldap_user( $cas_user );
+		if ( $existing_user ) {
+			$user_data = $existing_user->get_user_data( );
+			$user_data['ID'] = $wordpress_user->ID;
+
+			// Remove role from userdata
+			unset( $user_data['role'] );
+
+			$user_id = wp_update_user( $user_data );
+
+			if ( is_wp_error( $user_id ) ) {
+				$error_string = $user_id->get_error_message( );
+				error_log( 'Update user failed: ' . $error_string );
+				echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
+			}
+		}
+	}
+
+	$user_exists = is_user_member_of_blog( $wordpress_user->ID, $blog_id );
+	if ( ! $user_exists ) {
+		if ( function_exists( 'add_user_to_blog' ) ) {
+			add_user_to_blog( $blog_id, $wordpress_user->ID, $wp_cas_ldap_use_options['userrole'] );
+		}
+	}
+
+	// the CAS user has a WP account
+	wp_set_auth_cookie($wordpress_user->ID);
+}
+
+/**
  * wp_cas_ldap_now_puser function
  *
  * @param string $new_user_id the username of a user
