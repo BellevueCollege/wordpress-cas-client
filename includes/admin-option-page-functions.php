@@ -46,6 +46,8 @@ function wp_cas_ldap_register_settings( ) {
 		'ldaphost',
 		'ldapport',
 		'ldapbasedn',
+		'ldapbinddn',
+		'ldapbindpwd',
 		'useldap',
 		'ldap_map_login_attr',
 		'ldap_map_email_attr',
@@ -76,6 +78,9 @@ function wp_cas_ldap_register_settings( ) {
 					break;
 				case 'server_port':
 					$cleaner = 'intval';
+					break;
+				case 'ldapbindpwd':
+					$cleaner = 'wp_cas_ldap_encrypt_ldapbindpwd';
 					break;
 				case 'ldap_map_login_attr':
 				case 'ldap_map_email_attr':
@@ -175,6 +180,18 @@ function wp_cas_ldap_fix_who_can_view( $in ) {
 }
 
 /**
+ * wp_cas_ldap_encrypt_ldapbindpwd function
+ *
+ * @param string $in value is the LDAP bind plain-password
+ * @return string value will be the LDAP bind encrypted password
+ */
+function wp_cas_ldap_encrypt_ldapbindpwd( $in ) {
+	if (strlen($in) > 0)
+		return wp_cas_ldapbindpwd :: encrypt($in);
+	return $in;
+}
+
+/**
  * wp_cas_ldap_dummy function
  *
  * @param string $in domain suffix in email address.
@@ -182,6 +199,108 @@ function wp_cas_ldap_fix_who_can_view( $in ) {
  */
 function wp_cas_ldap_dummy( $in ) {
 	return $in;
+}
+
+/**
+ * wp_cas_ldapbindpwd class to encrypt/decrypt LDAP Bind password
+ *
+ * This mecanism provided from Authorizer Wordpress plugin.
+ * Author: Paul Ryan <prar@hawaii.edu>
+ * Plugin URI: https://github.com/uhm-coe/authorizer
+ * License: GPL2
+ * Version: 2.8.6
+ */
+class wp_cas_ldapbindpwd {
+	/**
+	 * Encryption key (not secret!).
+	 *
+	 * @var string
+	 */
+	private static $key = 'ka1Ieku&vaeng5pais#o9Air';
+
+	/**
+	 * Encryption salt (not secret!).
+	 *
+	 * @var string
+	 */
+	private static $iv = 'Eob1Sie8aK5zai9Iech/eyu6';
+
+	/**
+	 * Basic encryption using a public (not secret!) key. Used for general
+	 * database obfuscation of passwords.
+	 *
+	 * @param  string $text    String to encrypt.
+	 * @param  string $library Encryption library to use (openssl).
+	 * @return string	  Encrypted string.
+	 */
+	public static function encrypt( $text, $library = 'openssl' ) {
+		$result = '';
+
+		// Use openssl library (better) if it is enabled.
+		if ( function_exists( 'openssl_encrypt' ) && 'openssl' === $library ) {
+			$result = base64_encode(
+				openssl_encrypt(
+					$text,
+					'AES-256-CBC',
+					hash( 'sha256', self::$key ),
+					0,
+					substr( hash( 'sha256', self::$iv ), 0, 16 )
+				)
+			);
+		} elseif ( function_exists( 'mcrypt_encrypt' ) ) { // Use mcrypt library (deprecated in PHP 7.1) if php5-mcrypt extension is enabled.
+			$result = base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, self::$key, $text, MCRYPT_MODE_ECB, 'abcdefghijklmnopqrstuvwxyz012345' ) );
+		} else { // Fall back to basic obfuscation.
+			$length = strlen( $text );
+			for ( $i = 0; $i < $length; $i++ ) {
+				$char    = substr( $text, $i, 1 );
+				$keychar = substr( self::$key, ( $i % strlen( self::$key ) ) - 1, 1 );
+				$char    = chr( ord( $char ) + ord( $keychar ) );
+				$result .= $char;
+			}
+			$result = base64_encode( $result );
+		}
+
+		return $result;
+	}
+
+
+	/**
+	 * Basic decryption using a public (not secret!) key. Used for general
+	 * database obfuscation of passwords.
+	 *
+	 * @param  string $secret  String to encrypt.
+	 * @param  string $library Encryption lib to use (openssl).
+	 * @return string	  Decrypted string
+	 */
+	public static function decrypt( $secret, $library = 'openssl' ) {
+		$result = '';
+
+		// Use openssl library (better) if it is enabled.
+		if ( function_exists( 'openssl_decrypt' ) && 'openssl' === $library ) {
+			$result = openssl_decrypt(
+				base64_decode( $secret ),
+				'AES-256-CBC',
+				hash( 'sha256', self::$key ),
+				0,
+				substr( hash( 'sha256', self::$iv ), 0, 16 )
+			);
+		} elseif ( function_exists( 'mcrypt_decrypt' ) ) { // Use mcrypt library (deprecated in PHP 7.1) if php5-mcrypt extension is enabled.
+			$secret = base64_decode( $secret );
+			$result = rtrim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, self::$key, $secret, MCRYPT_MODE_ECB, 'abcdefghijklmnopqrstuvwxyz012345' ), "\0$result" );
+		} else { // Fall back to basic obfuscation.
+			$secret = base64_decode( $secret );
+			$length = strlen( $secret );
+			for ( $i = 0; $i < $length; $i++ ) {
+				$char    = substr( $secret, $i, 1 );
+				$keychar = substr( self::$key, ( $i % strlen( self::$key ) ) - 1, 1 );
+				$char    = chr( ord( $char ) - ord( $keychar ) );
+				$result .= $char;
+			}
+		}
+
+		return $result;
+	}
+
 }
 
 /**
@@ -244,6 +363,8 @@ function wp_cas_ldap_get_options( ) {
 		'ldapport'        		=> $get_options_func( 'wpcasldap_ldapport' ),
 		'useldap'         		=> $get_options_func( 'wpcasldap_useldap' ),
 		'ldapbasedn'      		=> $get_options_func( 'wpcasldap_ldapbasedn' ),
+		'ldapbinddn'      		=> $get_options_func( 'wpcasldap_ldapbinddn' ),
+		'ldapbindpwd'      		=> $get_options_func( 'wpcasldap_ldapbindpwd' ),
 		'ldap_map_login_attr'		=> $get_options_func( 'wpcasldap_ldap_map_login_attr', 'samaccountname'),
 		'ldap_map_email_attr'		=> $get_options_func( 'wpcasldap_ldap_map_email_attr', 'mail'),
 		'ldap_map_alt_email_attr'	=> $get_options_func( 'wpcasldap_ldap_map_alt_email_attr'),

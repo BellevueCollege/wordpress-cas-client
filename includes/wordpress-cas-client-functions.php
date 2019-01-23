@@ -163,15 +163,17 @@ function get_ldap_user( $login ) {
 			if ( ! ldap_set_option( $ds, LDAP_OPT_REFERRALS, 0 ) ) {
 				error_log( 'Failed to set LDAP Referrals to False.' );
 			} else {
-				// Get LDAP service sccount username
-				$ldap_user = $GLOBALS['ldapUser'];
-				// Get service account associated password
-				$ldap_pass = $GLOBALS['ldapPassword'];
-				$bind = ldap_bind( $ds, $ldap_user, $ldap_pass );
+				// Get LDAP service account DN/password
+				$ldap_bind_dn = $wp_cas_ldap_use_options['ldapbinddn'];
+				$ldap_bind_pwd = $wp_cas_ldap_use_options['ldapbindpwd'];
+				if (strlen($ldap_bind_pwd) > 0)
+					$ldap_bind_pwd = wp_cas_ldapbindpwd :: decrypt($ldap_bind_pwd);
+
+				$bind = ldap_bind( $ds, $ldap_bind_dn, $ldap_bind_pwd );
 
 				//Check to make sure we're bound.
 				if ( ! $bind ) {
-					error_log( 'LDAP Bind failed with Service Account: ' . $ldap_user );
+					error_log( 'LDAP Bind failed with Service Account: ' . $ldap_bind_pwd );
 				} else {
 					$search = ldap_search(
 						$ds,

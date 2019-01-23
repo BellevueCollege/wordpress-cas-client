@@ -350,6 +350,8 @@ function wp_cas_ldap_options_page( ) {
 
 	if ( function_exists( 'ldap_connect' ) ) {
 		if ( ! isset( $wp_cas_ldap_options['ldapbasedn'] ) ||
+				! isset( $wp_cas_ldap_options['ldapbinddn'] ) ||
+				! isset( $wp_cas_ldap_options['ldapbindpwd'] ) ||
 				! isset( $wp_cas_ldap_options['ldapport'] ) ||
 				! isset( $wp_cas_ldap_options['ldaphost'] ) ) {
 			echo '<h4>';
@@ -423,6 +425,46 @@ function wp_cas_ldap_options_page( ) {
 		</tr>
 <?php
 			}
+
+			if ( ! isset( $wp_cas_ldap_options['ldapbinddn'] ) || ! isset( $wp_cas_ldap_options['ldapbindpwd'] ) ) {
+?>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+				_e( 'LDAP Bind DN', 'wpcasldap' );
+?>
+				</label>
+			</th>
+			<td>
+<?php
+				echo '<input type="text" size="50" name="wpcasldap_ldapbinddn" id="ldap_binddn_inp" value="';
+				echo $option_array_def['ldapbinddn'];
+				echo '" />';
+?>
+			</td>
+		</tr>
+
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+				_e( 'LDAP Bind password', 'wpcasldap' );
+?>
+				</label>
+			</th>
+			<td>
+<?php
+				echo '<input type="password" size="50" name="wpcasldap_ldapbindpwd" id="ldap_binddn_inp" value="';
+				if (strlen($option_array_def['ldapbindpwd']) > 0)
+					echo wp_cas_ldapbindpwd :: decrypt($option_array_def['ldapbindpwd']);
+				echo '" />';
+?>
+			</td>
+		</tr>
+<?php
+			}
+
 ?>
 	</table>
 <?php
