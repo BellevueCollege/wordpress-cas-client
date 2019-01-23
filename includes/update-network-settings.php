@@ -45,15 +45,15 @@ function update_network_settings( ) {
 		$ldap_base_dn    		= $_POST['wpcasldap_ldapbasedn'];
 		$ldap_bind_dn    		= $_POST['wpcasldap_ldapbinddn'];
 		$ldap_bind_pwd    		= wp_cas_ldap_encrypt_ldapbindpwd($_POST['wpcasldap_ldapbindpwd']);
-		$ldap_map_login_attr		= $_POST['ldap_map_login_attr'];
-		$ldap_map_email_attr		= $_POST['ldap_map_email_attr'];
-		$ldap_map_alt_email_attr	= $_POST['ldap_map_alt_email_attr'];
-		$ldap_map_first_name_attr	= $_POST['ldap_map_first_name_attr'];
-		$ldap_map_last_name_attr	= $_POST['ldap_map_last_name_attr'];
-		$ldap_map_role_attr		= $_POST['ldap_map_role_attr'];
-		$ldap_map_nickname_attr		= $_POST['ldap_map_nickname_attr'];
-		$ldap_map_nicename_attr		= $_POST['ldap_map_nicename_attr'];
-		$who_can_view			= $_POST['who_can_view'];
+		$ldap_map_login_attr		= $_POST['wpcasldap_ldap_map_login_attr'];
+		$ldap_map_email_attr		= $_POST['wpcasldap_ldap_map_email_attr'];
+		$ldap_map_alt_email_attr	= $_POST['wpcasldap_ldap_map_alt_email_attr'];
+		$ldap_map_first_name_attr	= $_POST['wpcasldap_ldap_map_first_name_attr'];
+		$ldap_map_last_name_attr	= $_POST['wpcasldap_ldap_map_last_name_attr'];
+		$ldap_map_role_attr		= $_POST['wpcasldap_ldap_map_role_attr'];
+		$ldap_map_nickname_attr		= $_POST['wpcasldap_ldap_map_nickname_attr'];
+		$ldap_map_nicename_attr		= $_POST['wpcasldap_ldap_map_nicename_attr'];
+		$who_can_view			= $_POST['wpcasldap_who_can_view'];
 
 		update_site_option( 'wpcasldap_cas_version', $cas_version );
 		update_site_option( 'wpcasldap_include_path', $include_path );
