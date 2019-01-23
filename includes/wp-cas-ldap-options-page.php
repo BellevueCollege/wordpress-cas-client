@@ -26,7 +26,7 @@
  * Phone:   +1 425.564.4201
  */
 
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/admin-option-page-functions.php';
+require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/class-wp-cas-ldap-settings.php';
 
 /**
  * wp_cas_ldap_options_page function hook for WordPress.
@@ -35,7 +35,7 @@ function wp_cas_ldap_options_page( ) {
 	global $wp_cas_ldap_options, $form_action;
 
 	// Get Options
-	$option_array_def = wp_cas_ldap_get_options( );
+	$option_array_def = wp_cas_ldap_settings :: get_options( );
 ?>
 	<div class="wrap">
 	<h2>CAS Client</h2>
@@ -457,7 +457,7 @@ function wp_cas_ldap_options_page( ) {
 <?php
 				echo '<input type="password" size="50" name="wpcasldap_ldapbindpwd" id="ldap_binddn_inp" value="';
 				if (strlen($option_array_def['ldapbindpwd']) > 0)
-					echo wp_cas_ldapbindpwd :: decrypt($option_array_def['ldapbindpwd']);
+					echo wp_cas_ldap_settings :: decrypt($option_array_def['ldapbindpwd']);
 				echo '" />';
 ?>
 			</td>

@@ -53,9 +53,8 @@ Plugin URI: BellevueCollege/wordpress-cas-client
 define( 'CAPABILITY', 'edit_themes' );
 define( 'CAS_CLIENT_ROOT', dirname( __FILE__ ) );
 
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/admin-option-page-functions.php';
+require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/class-wp-cas-ldap-settings.php';
 require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/class-wp-cas-ldap.php';
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/update-network-settings.php';
 if (file_exists(constant( 'CAS_CLIENT_ROOT' ) . '/config.php'))
 	require_once constant( 'CAS_CLIENT_ROOT' ) . '/config.php';
 
@@ -67,8 +66,6 @@ if (file_exists(constant( 'CAS_CLIENT_ROOT' ) . '/config.php'))
  * This global variable is set to either 'get_option' or 'get_site_option'
  * depending on multisite option value.
  */
-global $get_options_func;
-$get_options_func = 'get_option';
 
 /*
  * This global variable is defaulted to 'options.php' , but for network
@@ -78,14 +75,11 @@ global $form_action;
 $form_action = 'options.php';
 
 if ( is_multisite( ) ) {
-	update_network_settings( );
-	add_action( 'network_admin_menu', 'cas_client_settings' );
-
-	$get_options_func = 'get_site_option';
+	add_action( 'network_admin_menu', array ( 'wp_cas_ldap_settings', 'add_cas_client_network_admin_menu' ) );
 	$form_action = '';
 } elseif ( is_admin( ) ) {
-	add_action( 'admin_init', 'wp_cas_ldap_register_settings' );
-	add_action( 'admin_menu', 'wp_cas_ldap_options_page_add' );
+	add_action( 'admin_init', array ( 'wp_cas_ldap_settings', 'register_settings' ) );
+	add_action( 'admin_menu', array ( 'wp_cas_ldap_settings', 'add_cas_client_admin_menu' ) );
 }
 
 add_action( 'wp_authenticate', array( 'WP_CAS_LDAP', 'authenticate' ), 10, 2 );
@@ -112,7 +106,7 @@ if ( $wp_cas_ldap_options ) {
 	}
 }
 
-$wp_cas_ldap_use_options = wp_cas_ldap_get_options( );
+$wp_cas_ldap_use_options = wp_cas_ldap_settings :: get_options( );
 
 global $cas_configured;
 $cas_configured = false;

@@ -75,12 +75,11 @@ class WP_CAS_LDAP {
 	 */
 	function logout( ) {
 		global $cas_configured;
-		global $get_options_func;
 		if ( ! $cas_configured ) {
 			exit( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ) );
 		}
 
-		phpCAS::logout( array( 'url' => $get_options_func( 'siteurl' ) ) );
+		phpCAS::logout( array( 'url' => get_site_url() ) );
 		exit( );
 	}
 
