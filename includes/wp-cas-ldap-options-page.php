@@ -86,6 +86,11 @@ function wp_cas_ldap_options_page( ) {
 				<td>
 <?php
 		echo '<input type="text" size="80" name="wpcasldap_include_path" id="include_path_inp" value="' . $option_array_def['include_path'] . '" />';
+		if ( isset( $option_array_def['include_path'] ) && !empty( $option_array_def['include_path'] ) && !file_exists( $option_array_def['include_path'] ) ) {
+			echo "<p><strong style='color: red'>";
+			_e( 'WARNING : The path to CAS.php file currently defined is incorrect !', 'wpcasldap' );
+			echo "</strong></p>";
+		}
 ?>
 				</td>
 			</tr>
