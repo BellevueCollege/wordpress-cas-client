@@ -167,7 +167,7 @@ function get_ldap_user( $login ) {
 				$ldap_bind_dn = $wp_cas_ldap_use_options['ldapbinddn'];
 				$ldap_bind_pwd = $wp_cas_ldap_use_options['ldapbindpwd'];
 				if (strlen($ldap_bind_pwd) > 0)
-					$ldap_bind_pwd = wp_cas_ldapbindpwd :: decrypt($ldap_bind_pwd);
+					$ldap_bind_pwd = wp_cas_ldap_settings :: decrypt($ldap_bind_pwd);
 
 				$bind = ldap_bind( $ds, $ldap_bind_dn, $ldap_bind_pwd );
 
