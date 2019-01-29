@@ -169,7 +169,7 @@ class WP_CAS_LDAP {
 			update_and_auth_user($cas_user, $user);
 
 			// Need redirect user after login to make him directly recognized
-			wp_redirect( site_url() );
+			wp_redirect( site_url( $wp->request ) );
 			exit();
 		}
 		elseif ( $wp_cas_ldap_use_options['who_can_view'] == 'cas_authenticated_users' ) {
