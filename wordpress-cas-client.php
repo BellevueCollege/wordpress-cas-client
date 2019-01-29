@@ -74,7 +74,7 @@ if (file_exists(constant( 'CAS_CLIENT_ROOT' ) . '/config.php'))
 global $form_action;
 $form_action = 'options.php';
 
-if ( is_multisite( ) ) {
+if ( wp_cas_ldap_settings :: is_enabled_for_network( ) ) {
 	add_action( 'network_admin_menu', array ( 'wp_cas_ldap_settings', 'add_cas_client_network_admin_menu' ) );
 	$form_action = '';
 } elseif ( is_admin( ) ) {

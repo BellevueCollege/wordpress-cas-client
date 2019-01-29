@@ -113,7 +113,7 @@ class wp_cas_ldap_settings {
 			if (is_array($wp_cas_ldap_options) && array_key_exists($opt, $wp_cas_ldap_options)) {
 				$out[ $opt ] = $wp_cas_ldap_options[ $opt ];
 			}
-			elseif ( is_multisite( ) ) {
+			elseif ( self :: is_enabled_for_network( ) ) {
 				$out[ $opt ] = get_site_option (
 					"wpcasldap_$opt",
 					(isset($opt_args['default'])?$opt_args['default']:false)
@@ -345,6 +345,16 @@ class wp_cas_ldap_settings {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Detect if plugin is enabled for the network or a site
+	 **/
+	public static function is_enabled_for_network($plugin = 'wordpress-cas-client') {
+		if ( ! function_exists( 'is_plugin_active_for_network' ) )
+			require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+
+		return is_plugin_active_for_network('wordpress-cas-client/wordpress-cas-client.php');
 	}
 
 	/**
