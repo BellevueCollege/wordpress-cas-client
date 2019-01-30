@@ -74,6 +74,16 @@ class WP_CAS_LDAP {
 	 * logout function hook for WordPress.
 	 */
 	function logout( ) {
+		global $wp_cas_ldap_use_options;
+		if ('yes' === $wp_cas_ldap_use_options['disable_cas_logout'] ) {
+			// Drop local session to avoid PHP auto-reconnect
+			session_unset();
+			session_destroy();
+			$message = __( 'You are now disconnected.', 'wpcasldap' );
+			wp_die( $message, $message, array ('response' => 200);
+			exit ( );
+		}
+
 		global $cas_configured;
 		if ( ! $cas_configured ) {
 			exit( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ) );

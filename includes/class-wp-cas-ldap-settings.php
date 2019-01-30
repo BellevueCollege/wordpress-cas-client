@@ -42,6 +42,9 @@ class wp_cas_ldap_settings {
 			'default' => 443,
 		),
 		'server_path' => array (),
+		'disable_cas_logout' => array (
+			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_yes_or_no' ),
+		),
 		'useradd' => array (
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_yes_or_no' ),
 		),

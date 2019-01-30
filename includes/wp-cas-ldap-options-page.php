@@ -195,7 +195,43 @@ function wp_cas_ldap_options_page( ) {
 		</tr>
 <?php
 		}
+
+		if ( ! isset( $wp_cas_ldap_options['disable_cas_logout'] ) ) {
 ?>
+			<tr valign="top">
+				<th scope="row">
+					<label>
+<?php
+			_e( 'Disable CAS logout', 'wpcasldap' );
+?>
+					</label>
+				</th>
+
+				<td>
+
+<?php
+			echo '<input type="radio" name="wpcasldap_disable_cas_logout" id="disable_cas_logout_yes" value="yes" ';
+			echo ( 'yes' === $option_array_def['disable_cas_logout'] ) ? 'checked="checked"' : '';
+			echo ' />';
+?>
+					<label for="disable_cas_logout_yes"><?php _e( 'Yes', 'wpcasldap' ); ?> &nbsp;</label>
+<?php
+			echo '<input type="radio" name="wpcasldap_disable_cas_logout" id="disable_cas_logout_no" value="no" ';
+			echo ( 'yes' !== $option_array_def['disable_cas_logout'] ) ? 'checked="checked"' : '';
+			echo ' />';
+?>
+					<label for="disable_cas_logout_no"><?php _e( 'No', 'wpcasldap' ); ?> &nbsp;</label>
+<?php
+			echo '<p><small><em>';
+			_e( "Note: If you disable CAS logout, when user click on logout link, he will be disconnect only from Wordpress, not on CAS server (and potential other CAS authenticed services).", 'wpcasldap' );
+			echo '</em></small></p>';
+?>
+				</td>
+			</tr>
+<?php
+		}
+?>
+
 	</table>
 <?php
 	}
