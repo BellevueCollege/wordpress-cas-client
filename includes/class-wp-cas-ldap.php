@@ -80,14 +80,14 @@ class WP_CAS_LDAP {
 			session_unset();
 			session_destroy();
 			$message = __( 'You are now disconnected.', 'wpcasldap' );
-			wp_die( $message, $message, array ('response' => 200);
+			wp_die( $message, $message, array ('response' => 200) );
 			exit ( );
 		}
 
 		global $cas_configured;
 		if ( ! $cas_configured ) {
-			$message = __( 'WordPress CAS Client plugin not configured.', 'wpcasldap' ):
-			wp_die( $message, $message);
+			$message = __( 'WordPress CAS Client plugin not configured.', 'wpcasldap' );
+			wp_die( $message, $message );
 		}
 
 		phpCAS::logout( array( 'url' => get_site_url() ) );

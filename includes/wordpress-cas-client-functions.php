@@ -39,7 +39,7 @@ function authenticate_cas_user() {
 	global $wp_cas_ldap_use_options, $cas_configured, $blog_id;
 
 	if ( ! $cas_configured ) {
-		$message = __( 'WordPress CAS Client plugin not configured.', 'wpcasldap' ):
+		$message = __( 'WordPress CAS Client plugin not configured.', 'wpcasldap' );
 		wp_die( $message, $message);
 	}
 
