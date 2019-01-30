@@ -65,7 +65,7 @@ class WP_CAS_LDAP {
 			if ( function_exists( 'wp_cas_ldap_now_puser' ) && 'yes' === $wp_cas_ldap_use_options['useradd'] ) {
 				wp_cas_ldap_now_puser( $cas_user );
 			} else {
-				exit( __( 'you do not have permission here', 'wpcasldap' ) );
+				self :: deny_access();
 			}
 		}
 	}
@@ -86,7 +86,8 @@ class WP_CAS_LDAP {
 
 		global $cas_configured;
 		if ( ! $cas_configured ) {
-			exit( __( 'WordPress CAS Client plugin not configured', 'wpcasldap' ) );
+			$message = __( 'WordPress CAS Client plugin not configured.', 'wpcasldap' ):
+			wp_die( $message, $message);
 		}
 
 		phpCAS::logout( array( 'url' => get_site_url() ) );
@@ -119,7 +120,14 @@ class WP_CAS_LDAP {
 	* Disable reset, lost, and retrieve password features in WordPress.
 	*/
 	function disable_function( ) {
-		exit( __( 'Sorry, this feature is disabled.', 'wpcasldap' ) );
+		wp_die(
+			__( 'Sorry, this feature is disabled.', 'wpcasldap' ),
+			__("Feature disabled", 'wpcasldap'),
+			array(
+				'response' => 200,
+				'back_link' => true,
+			)
+		);
 	}
 
 	/*
@@ -166,7 +174,7 @@ class WP_CAS_LDAP {
 			if (is_user_member_of_blog( get_current_user_id() ))
 				return $wp;
 			else
-				wp_die( '<p>Access denied.</p>', 'Site Access Restricted' );
+				self :: deny_access();
 		}
 
 		// Auth user via CAS
@@ -222,7 +230,7 @@ class WP_CAS_LDAP {
 				get_bloginfo( 'name' )
 			);
 			$error_message = apply_filters( 'the_content', $deny_access_message );
-			wp_die( wp_kses( $error_message, $this->allowed_html ), esc_html( $page_title ) );
+			wp_die( wp_kses( $error_message ), esc_html( $page_title ) );
 		}
 
 		// Sanity check: we should never get here.
