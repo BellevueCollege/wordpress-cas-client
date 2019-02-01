@@ -230,7 +230,7 @@ class WP_CAS_LDAP {
 				get_bloginfo( 'name' )
 			);
 			$error_message = apply_filters( 'the_content', $deny_access_message );
-			wp_die( wp_kses( $error_message ), esc_html( $page_title ) );
+			wp_die( wp_kses( $error_message, false ), esc_html( $page_title ) );
 		}
 
 		// Sanity check: we should never get here.
