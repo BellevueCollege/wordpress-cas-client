@@ -159,6 +159,10 @@ class WP_CAS_LDAP {
 
 		// User is already logged in ?
 		if (is_user_logged_in()) {
+			// Put CAS user infos in global variable
+			$GLOBALS['CAS_USER'] = $_SESSION['CAS_USER'];
+			$GLOBALS['CAS_USER_DATA'] = $_SESSION['CAS_USER_DATA'];
+
 			// Allow access in 'cas_authenticated_users' mode
 			if ( $wp_cas_ldap_use_options['who_can_view'] == 'cas_authenticated_users' ) {
 				return $wp;
@@ -192,6 +196,25 @@ class WP_CAS_LDAP {
 		}
 		elseif ( $wp_cas_ldap_use_options['who_can_view'] == 'cas_authenticated_users' ) {
 			// Allow user only in 'cas_authenticated_users' mode
+
+			// Retreive CAS user infos (if not already in session)
+			if (!isset($_SESSION['CAS_USER']) || !isset($_SESSION['CAS_USER_DATA']) || $_SESSION['CAS_USER'] != $cas_user) {
+				// Retreive user data as new user
+				$user_data = get_new_user_data( $cas_user );
+
+				// Unset wordpress user specific infos
+				unset($user_data['user_pass']);
+				unset($user_data['role']);
+
+				// Store user data in session
+				$_SESSION['CAS_USER'] = $cas_user;
+				$_SESSION['CAS_USER_DATA'] = $user_data;
+			}
+
+			// Put CAS user infos in global variable
+			$GLOBALS['CAS_USER'] = $_SESSION['CAS_USER'];
+			$GLOBALS['CAS_USER_DATA'] = $_SESSION['CAS_USER_DATA'];
+
 			return $wp;
 		}
 		elseif ('yes' === $wp_cas_ldap_use_options['useradd']) {
