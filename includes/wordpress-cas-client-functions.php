@@ -68,7 +68,6 @@ function update_and_auth_user($cas_user, $wordpress_user) {
 		'first_name'	=> $wordpress_user->first_name,
 		'last_name'	=> $wordpress_user->last_name,
 		'user_email'	=> $wordpress_user->user_email,
-		'role'		=> $wordpress_user->role,
 		'nickname'	=> $wordpress_user->nickname,
 		'user_nicename'	=> $wordpress_user->user_nicename,
 	);
@@ -80,8 +79,9 @@ function update_and_auth_user($cas_user, $wordpress_user) {
 			$new_user_data = $existing_user->get_user_data( );
 			$new_user_data['ID'] = $wordpress_user->ID;
 
-			// Remove role from userdata
+			// Remove role and password from userdata
 			unset( $new_user_data['role'] );
+			unset( $new_user_data['user_pass'] );
 
 			$user_id = wp_update_user( $user_data );
 
@@ -91,7 +91,6 @@ function update_and_auth_user($cas_user, $wordpress_user) {
 				echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
 			}
 			else {
-				$new_user_data['role'] = $user_data['role'];
 				$user_data = $new_user_data;
 			}
 		}
