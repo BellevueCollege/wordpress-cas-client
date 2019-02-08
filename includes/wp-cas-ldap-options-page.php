@@ -602,10 +602,30 @@ function wp_cas_ldap_options_page( ) {
 				</select>
 			</td>
 		</tr>
-	</table>
 <?php
 	}
+
+		if ( ! isset( $wp_cas_ldap_options['access_denied_redirect_url'] ) ) {
 ?>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+			_e( 'Access denied redirect URL', 'wpcasldap' );
+?>
+				</label>
+			</th>
+
+			<td>
+<?php
+			echo '<input type="text" size="50" name="wpcasldap_access_denied_redirect_url" id="access_denied_redirect_url" value="' . $option_array_def['access_denied_redirect_url'] . '" />';
+?>
+			</td>
+		</tr>
+<?php
+		}
+?>
+	</table>
 	<div class="submit">
 		<input type="submit" name="wpcasldap_submit" value="Save" />
 	</div>

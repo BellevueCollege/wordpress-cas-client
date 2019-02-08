@@ -228,9 +228,9 @@ class WP_CAS_LDAP {
 	}
 
 	/**
-	 * Deny access to user : show them the error message. Render as JSON
-         * if this is a REST API call; otherwise, show the error message via
-         * wp_die() (rendered html), or redirect to the login URL.
+	 * Deny access to user :
+         *  - if this is a REST API call, render an error message as JSON
+         *  - otherwise, redirect to access denied page if defined or render an error messaoge using wp_die() 
          **/
 	function deny_access() {
 		$deny_access_message = __( 'Access to this site is restricted.', 'wpcasldap' );
@@ -247,6 +247,21 @@ class WP_CAS_LDAP {
 			);
 		}
 		else {
+			global $wp_cas_ldap_use_options;
+			if (isset($wp_cas_ldap_use_options['access_denied_redirect_url']) && !empty($wp_cas_ldap_use_options['access_denied_redirect_url'])) {
+				// If site relative URL ?
+				if ($wp_cas_ldap_use_options['access_denied_redirect_url'][0] == '/') {
+					if ('wordpress_authenticated_users' != $wp_cas_ldap_use_options['who_can_view']) {
+						wp_redirect( site_url( $wp_cas_ldap_use_options['access_denied_redirect_url'] ) );
+						exit();
+					}
+				}
+				else {
+					wp_redirect( $wp_cas_ldap_use_options['access_denied_redirect_url'] );
+					exit();
+				}
+			}
+
 			$page_title = sprintf(
 				/* TRANSLATORS: %s: Name of blog */
 				__( '%s - Access Restricted', 'wpcasldap' ),

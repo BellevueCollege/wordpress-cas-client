@@ -101,6 +101,7 @@ class wp_cas_ldap_settings {
 			'default' => 'everyone',
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_who_can_view'),
 		),
+		'access_denied_redirect_url' => array (),
 	);
 
 	/**
