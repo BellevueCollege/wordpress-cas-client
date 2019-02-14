@@ -195,6 +195,7 @@ function get_ldap_user( $login ) {
 							$wp_cas_ldap_use_options['ldap_map_first_name_attr'],
 							$wp_cas_ldap_use_options['ldap_map_last_name_attr'],
 							$wp_cas_ldap_use_options['ldap_map_role_attr'],
+							$wp_cas_ldap_use_options['ldap_map_affiliations_attr'],
 							$wp_cas_ldap_use_options['ldap_map_nickname_attr'],
 							$wp_cas_ldap_use_options['ldap_map_nicename_attr'],
 						),

@@ -97,6 +97,9 @@ class wp_cas_ldap_settings {
 		'ldap_map_nicename_attr' => array (
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_ldap_attr_name'),
 		),
+		'ldap_map_affiliations_attr' => array (
+			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_ldap_attr_name'),
+		),
 		'who_can_view' => array (
 			'default' => 'everyone',
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_who_can_view'),

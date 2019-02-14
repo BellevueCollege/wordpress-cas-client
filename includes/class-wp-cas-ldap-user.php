@@ -44,6 +44,7 @@ class WP_CAS_LDAP_User {
 		$this -> dn = $dn;
 		if (is_array($attributes)) {
 			foreach ($attributes as $attr => $values) {
+				if (isset($values['count'])) unset($values['count']);
 				$this -> attributes[strtolower($attr)] = $values;
 			}
 		}
@@ -78,6 +79,7 @@ class WP_CAS_LDAP_User {
 				'first_name'    => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_first_name_attr']),
 				'last_name'     => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_last_name_attr']),
 				'role'          => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_role_attr'], null, $wp_cas_ldap_use_options['userrole']),
+				'affiliations'  => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_affiliations_attr'], null, null, true),
 				'nickname'      => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nickname_attr']),
 				'user_nicename' => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nicename_attr'], null, sanitize_title_with_dashes($this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']))),
 			);
@@ -91,14 +93,14 @@ class WP_CAS_LDAP_User {
 	 *
 	 * @return string|null
 	 */
-	function get_user_attr($attr, $alt_attr=null, $default_value=null) {
+	function get_user_attr($attr, $alt_attr=null, $default_value=null, $all=null) {
 		$attr = ($attr?strtolower($attr):null);
 		$alt_attr = ($alt_attr?strtolower($alt_attr):null);
 		if($attr && isset($this->attributes[$attr]) && !empty($this->attributes[$attr])) {
-			return $this->attributes[$attr][0];
+			return ($all?$this->attributes[$attr]:$this->attributes[$attr][0]);
 		}
 		elseif($alt_attr && isset($this->attributes[$alt_attr]) && !empty($this->attributes[$alt_attr])) {
-			return $this->attributes[$alt_attr][0];
+			return ($all?$this->attributes[$alt_attr]:$this->attributes[$alt_attr][0]);
 		}
 		else {
 			return $default_value;

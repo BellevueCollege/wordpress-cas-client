@@ -525,6 +525,7 @@ function wp_cas_ldap_options_page( ) {
 			'nickname' => 'nickname',
 			'nicename' => 'nice name',
 			'role' => 'role',
+			'affiliations' => 'affiliations',
 			'email' => 'email',
 			'alt_email' => 'alternative email',
 	);
