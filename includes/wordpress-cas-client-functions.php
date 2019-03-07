@@ -182,7 +182,7 @@ function get_ldap_user( $login ) {
 
 				//Check to make sure we're bound.
 				if ( ! $bind ) {
-					error_log( 'LDAP Bind failed with Service Account: ' . $ldap_bind_pwd );
+					error_log( 'LDAP Bind failed with Service Account' );
 				} else {
 					$search = ldap_search(
 						$ds,
