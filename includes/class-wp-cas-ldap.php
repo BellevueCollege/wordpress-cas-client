@@ -274,4 +274,15 @@ class WP_CAS_LDAP {
 		// Sanity check: we should never get here.
 		wp_die( '<p>Access denied.</p>', 'Site Access Restricted' );
 	}
+
+	/*
+	 * plugins_loaded method hook for WordPress.
+	 *
+	 * Load plugin textdomain
+	 */
+	public function plugins_loaded( $wp ) {
+		$plugin_rel_path = basename( realpath( dirname( __FILE__ ).'/../' ) ) . '/languages'; /* Relative to WP_PLUGIN_DIR */
+		load_plugin_textdomain( 'wpcasldap', false, $plugin_rel_path );
+	}
+
 }

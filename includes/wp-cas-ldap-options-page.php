@@ -38,7 +38,7 @@ function wp_cas_ldap_options_page( ) {
 	$option_array_def = wp_cas_ldap_settings :: get_options( );
 ?>
 	<div class="wrap">
-	<h2>CAS Client</h2>
+	<h2><?php _e('CAS Client', 'wpcasldap'); ?></h2>
 <?php
 	echo '<form method="post" action="' . $form_action . '">';
 	settings_fields( 'wpcasldap' );
@@ -52,7 +52,7 @@ function wp_cas_ldap_options_page( ) {
 ?>
 <p>
 <?php
-	_e( 'Now that you’ve activated this plugin, WordPress is attempting to authenticate using CAS, even if it’s not configured or misconfigured.', 'wpcasldap' );
+	_e( "Now that you've activated this plugin, WordPress is attempting to authenticate using CAS, even if it's not configured or misconfigured.", 'wpcasldap' );
 	echo '<br />';
 	_e( 'Save yourself some trouble, open up another browser or use another machine to test logins. That way you can preserve this session to adjust the configuration or deactivate the plugin.', 'wpcasldap' );
 	echo '"';
@@ -555,15 +555,15 @@ function wp_cas_ldap_options_page( ) {
 	<table class="form-table">
 <?php
 	$map_attrs = array(
-			'login' => 'login',
-			'first_name' => 'first name',
-			'last_name' => 'last name',
-			'nickname' => 'nickname',
-			'nicename' => 'nice name',
-			'role' => 'role',
-			'affiliations' => 'affiliations',
-			'email' => 'email',
-			'alt_email' => 'alternative email',
+			'login' => __('the login', 'wpcasldap'),
+			'first_name' => __('the first name', 'wpcasldap'),
+			'last_name' => __('the last name', 'wpcasldap'),
+			'nickname' => __('the nickname', 'wpcasldap'),
+			'nicename' => __('the nice name', 'wpcasldap'),
+			'role' => __('the role', 'wpcasldap'),
+			'affiliations' => __('the affiliations', 'wpcasldap'),
+			'email' => __('the email', 'wpcasldap'),
+			'alt_email' => __('the alternative email', 'wpcasldap'),
 	);
 	foreach($map_attrs as $key => $label) {
 		if (! isset( $wp_cas_ldap_options['ldap_map_'.$key.'_attr'] )) {
@@ -572,9 +572,7 @@ function wp_cas_ldap_options_page( ) {
                         <th scope="row">
                                 <label>
 <?php
-                                _e( 'LDAP map attribute', 'wpcasldap' );
-				echo " ";
-                                _e( $label, 'wpcasldap' );
+                                printf(__( 'LDAP attribut for %s', 'wpcasldap' ), $label);
 ?>
                                 </label>
                         </th>
@@ -604,9 +602,9 @@ function wp_cas_ldap_options_page( ) {
 	<p>
 	<?php _e( "You could restrict access to the public web site here :", 'wpcasldap' ); ?>
 	<ul style="list-style-type: disc; padding-left: 1em;">
-		<li><?php _e( "If you choose to allow access only to <em>CAS authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress only if he already has an account." ); ?></li>
-		<li><?php _e( "If you choose to allow access only to <em>Wordpress authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress if he already has an account or if you choose to allow adding user in database. Otherwise, the access will be denied." ); ?></li>
-		<li><?php _e( "If you choose to allow access to <em>Everyone</em>, no restriction will be apply."); ?></li>
+		<li><?php _e( "If you choose to allow access only to <em>CAS authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress only if he already has an account.", 'wpcasldap' ); ?></li>
+		<li><?php _e( "If you choose to allow access only to <em>Wordpress authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress if he already has an account or if you choose to allow adding user in database. Otherwise, the access will be denied.", 'wpcasldap' ); ?></li>
+		<li><?php _e( "If you choose to allow access to <em>Everyone</em>, no restriction will be apply.", 'wpcasldap'); ?></li>
 	</ul>
 	</p>
 
@@ -664,7 +662,7 @@ function wp_cas_ldap_options_page( ) {
 ?>
 	</table>
 	<div class="submit">
-		<input type="submit" name="wpcasldap_submit" value="Save" />
+		<input type="submit" name="wpcasldap_submit" value="<?php _e('Save', 'wpcasldap'); ?>" />
 	</div>
 	</form>
 <?php

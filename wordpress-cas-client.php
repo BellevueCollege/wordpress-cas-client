@@ -1,13 +1,18 @@
 <?php
 /*
-Plugin Name: WordPress CAS Client
-Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.4
-Author: Bellevue College
-Author URI: http://www.bellevuecollege.edu
-License: GNU General Public License v2 or later
-Plugin URI: BellevueCollege/wordpress-cas-client
-*/
+ * Plugin Name: WordPress CAS Client
+ * Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a>
+ * single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user
+ * information after the user has successfully logged on to WordPress. This plugin is a fork of the
+ * <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
+ * Version: 1.4
+ * Author: Bellevue College
+ * Author URI: http://www.bellevuecollege.edu
+ * Text Domain: wpcasldap
+ * Domain Path: /languages
+ * License: GNU General Public License v2 or later
+ * Plugin URI: BellevueCollege/wordpress-cas-client
+ */
 
 /*
  * WordPress CAS Client plugin used to authenticate users against a CAS server
@@ -82,6 +87,7 @@ if ( wp_cas_ldap_settings :: is_enabled_for_network( ) ) {
 	add_action( 'admin_menu', array ( 'wp_cas_ldap_settings', 'add_cas_client_admin_menu' ) );
 }
 
+add_action( 'plugins_loaded', array( 'WP_CAS_LDAP', 'plugins_loaded' ) );
 add_action( 'wp_authenticate', array( 'WP_CAS_LDAP', 'authenticate' ), 10, 2 );
 add_action( 'wp_logout', array( 'WP_CAS_LDAP', 'logout' ) );
 add_action( 'lost_password', array( 'WP_CAS_LDAP', 'disable_function' ) );
