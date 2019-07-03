@@ -45,6 +45,9 @@ class wp_cas_ldap_settings {
 		'disable_cas_logout' => array (
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_yes_or_no' ),
 		),
+		'cas_redirect_using_js' => array (
+			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_yes_or_no' ),
+		),
 		'useradd' => array (
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_yes_or_no' ),
 		),

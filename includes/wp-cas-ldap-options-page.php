@@ -230,6 +230,42 @@ function wp_cas_ldap_options_page( ) {
 			</tr>
 <?php
 		}
+
+		if ( ! isset( $wp_cas_ldap_options['cas_redirect_using_js'] ) ) {
+?>
+			<tr valign="top">
+				<th scope="row">
+					<label>
+<?php
+			_e( 'Redirect to CAS login page using Javascript', 'wpcasldap' );
+?>
+					</label>
+				</th>
+
+				<td>
+
+<?php
+			echo '<input type="radio" name="wpcasldap_cas_redirect_using_js" id="cas_redirect_using_js_yes" value="yes" ';
+			echo ( 'yes' === $option_array_def['cas_redirect_using_js'] ) ? 'checked="checked"' : '';
+			echo ' />';
+?>
+					<label for="cas_redirect_using_js"><?php _e( 'Yes', 'wpcasldap' ); ?> &nbsp;</label>
+<?php
+			echo '<input type="radio" name="wpcasldap_cas_redirect_using_js" id="cas_redirect_using_js_no" value="no" ';
+			echo ( 'yes' !== $option_array_def['cas_redirect_using_js'] ) ? 'checked="checked"' : '';
+			echo ' />';
+?>
+					<label for="cas_redirect_using_js_no"><?php _e( 'No', 'wpcasldap' ); ?> &nbsp;</label>
+<?php
+			echo '<p><small><em>';
+			_e( "Note: Using Javascript to redirect user to CAS login page permit to keep hashtag in URL (if present).", 'wpcasldap' );
+			echo '</em></small></p>';
+?>
+				</td>
+			</tr>
+<?php
+		}
+
 ?>
 
 	</table>

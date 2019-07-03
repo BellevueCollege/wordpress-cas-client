@@ -42,10 +42,58 @@ function authenticate_cas_user() {
 		$message = __( 'WordPress CAS Client plugin not configured.', 'wpcasldap' );
 		wp_die( $message, $message);
 	}
-
 	if ( phpCAS::isAuthenticated() ) {
 		// CAS was successful
+
+		// Check if cas_redirect URL parameter is present
+		if (isset($_GET['cas_redirect']) && !empty($_GET['cas_redirect'])) {
+			header('Location: '.urldecode($_GET['cas_redirect']));
+			exit();
+		}
+
 		return phpCAS::getUser();
+	} elseif ( $wp_cas_ldap_use_options['cas_redirect_using_js'] == 'yes' ) {
+		// Authenticate the user using Javascript redirection
+		$cas_redirect_url = phpCAS :: getServerLoginURL();
+		$cas_root_redirect_url = preg_replace('/service=[^\&]+/', 'service=', $cas_redirect_url);
+		$pagetitle = __( 'Authentication', 'wpcasldap' );
+		$title = __( 'Please wait', 'wpcasldap' );
+		$message = __( 'You will be redirect soon to the login page.', 'wpcasldap' );
+		$noredirect_message = sprintf(__( "If you aren't automatically redirect, please click on <a href='%s'>this link</a>.", 'wpcasldap' ), $cas_redirect_url);
+		echo <<<EOF
+<html>
+    <head>
+        <title>$pagetitle</title>
+    <head>
+    <style>
+    body { text-align: center; }
+    h1 { color: #333; }
+    p { color: #777; }
+    a { color: #555; text-decoration: underline; }
+    </style>
+    <body>
+        <h1>$title</h1>
+        <p>$message</p>
+        <p>$noredirect_message</p>
+        <script>
+        if (location.hash) {
+            var path = location.pathname;
+            if (path.includes('?')) {
+                path += '&cas_redirect=';
+            }
+            else {
+                path += '?cas_redirect=';
+            }
+            window.location = '$cas_root_redirect_url' + encodeURIComponent(location.origin + path + encodeURIComponent(location.href)); 
+        }
+        else {
+            window.location = '$cas_root_redirect_url' + encodeURIComponent(location.href);
+        }
+        </script>
+    </body>
+</html>
+EOF;
+		exit();
 	} else {
 		// Authenticate the user
 		phpCAS::forceAuthentication();
