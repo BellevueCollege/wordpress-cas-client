@@ -60,40 +60,24 @@ function authenticate_cas_user() {
 		$title = __( 'Please wait', 'wpcasldap' );
 		$message = __( 'You will be redirected soon to the login page.', 'wpcasldap' );
 		$noredirect_message = sprintf(__( "If you aren't automatically redirected, please click on <a href='%s'>this link</a>.", 'wpcasldap' ), $cas_redirect_url);
-		echo <<<EOF
-<html>
-    <head>
-        <title>$pagetitle</title>
-    <head>
-    <style>
-    body { text-align: center; }
-    h1 { color: #333; }
-    p { color: #777; }
-    a { color: #555; text-decoration: underline; }
-    </style>
-    <body>
-        <h1>$title</h1>
-        <p>$message</p>
-        <p>$noredirect_message</p>
-        <script>
-        if (location.hash) {
-            var path = location.pathname;
-            if (path.includes('?')) {
-                path += '&cas_redirect=';
-            }
-            else {
-                path += '?cas_redirect=';
-            }
-            window.location = '$cas_root_redirect_url' + encodeURIComponent(location.origin + path + encodeURIComponent(location.href)); 
-        }
-        else {
-            window.location = '$cas_root_redirect_url' + encodeURIComponent(location.href);
-        }
-        </script>
-    </body>
-</html>
+		$redirect_script = <<<EOF
+<script>
+if (location.hash) {
+    var path = location.pathname;
+    if (path.includes('?')) {
+        path += '&cas_redirect=';
+    }
+    else {
+        path += '?cas_redirect=';
+    }
+    window.location = '$cas_root_redirect_url' + encodeURIComponent(location.origin + path + encodeURIComponent(location.href));
+}
+else {
+    window.location = '$cas_root_redirect_url' + encodeURIComponent(location.href);
+}
+</script>
 EOF;
-		exit();
+		wp_die("<h1>$title</h1><p>$message</p><p>$noredirect_message</p>$redirect_script", $title);
 	} else {
 		// Authenticate the user
 		phpCAS::forceAuthentication();
