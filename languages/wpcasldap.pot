@@ -1,5 +1,5 @@
 #: includes/class-wp-cas-ldap.php:82
-msgid "You are now disconnected."
+msgid "You are now logged off."
 msgstr ""
 
 #: includes/class-wp-cas-ldap.php:89
@@ -21,7 +21,7 @@ msgstr ""
 
 #: includes/class-wp-cas-ldap.php:267
 #, php-format
-msgid "%s - Access Restricted"
+msgid "%s - Access restricted"
 msgstr ""
 
 #: includes/wordpress-cas-client-functions.php:59
@@ -33,13 +33,13 @@ msgid "Please wait"
 msgstr ""
 
 #: includes/wordpress-cas-client-functions.php:61
-msgid "You will be redirect soon to the login page."
+msgid "You will be redirected soon to the login page."
 msgstr ""
 
 #: includes/wordpress-cas-client-functions.php:62
 #, php-format
 msgid ""
-"If you aren't automatically redirect, please click on <a href='%s'>this "
+"If you aren't automatically redirected, please click on <a href='%s'>this "
 "link</a>."
 msgstr ""
 
@@ -79,11 +79,11 @@ msgid ""
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:81
-msgid "CAS.php Path"
+msgid "CAS.php path"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:91
-msgid "WARNING : The path to CAS.php file currently defined is incorrect !"
+msgid "WARNING : The path to CAS.php file currently defined is incorrect!"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:107
@@ -126,9 +126,9 @@ msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:226
 msgid ""
-"Note: If you disable CAS logout, when user click on logout link, he will be "
-"disconnect only from Wordpress, not on CAS server (and potential other CAS "
-"authenticed services)."
+"Note: If you disable CAS logout, when a user click on the logout link, he "
+"will only be logged off from Wordpress, not from the CAS server (and "
+"potential other CAS authenticated services)."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:240
@@ -137,27 +137,27 @@ msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:261
 msgid ""
-"Note: Using Javascript to redirect user to CAS login page permit to keep "
+"Note: Using Javascript to redirect user to CAS login page enables to keep "
 "hashtag in URL (if present)."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:281
-msgid "Treatment of Unregistered User"
+msgid "Treatment of unregistered users"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:292
-msgid "Add to Database"
+msgid "Add to database"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:322
-msgid "Default Role"
+msgid "Default role"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:354
 msgid ""
-"Note: This default role is only used to create user on it's first "
-"connection. After, the user role have to be configured in Wordpress and will "
-"not be override from LDAP."
+"Note: This default role is only used to create the user on its first "
+"connection. Afterwards, the user role could be configured in Wordpress and "
+"will not be overwritten from LDAP."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:370
@@ -170,9 +170,9 @@ msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:416
 msgid ""
-"Note: This suffix is used to compose user email if it's could not be "
-"retreived from LDAP. You only have to enter the email domain name (without "
-"the '@')."
+"Note: This suffix is used to constitute user email if it couldn't be "
+"retreived from LDAP. You must only enter the email domain name (without the "
+"'@')."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:435
@@ -205,8 +205,8 @@ msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:552
 msgid ""
-"You have to configure here which LDAP attributes could be map with Wordpress "
-"user profil information."
+"You have to configure here which LDAP attributes could be mapped with "
+"Wordpress user profil information."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:558
@@ -255,28 +255,28 @@ msgid "Site access restriction"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:603
-msgid "You could restrict access to the public web site here :"
+msgid "You can restrict access to the public website here:"
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:605
 msgid ""
-"If you choose to allow access only to <em>CAS authenticated users</em>, user "
-"will be authenticated using CAS and authenticated in Wordpress only if he "
-"already has an account."
+"If you choose to allow access only to <em>CAS authenticated users</em>, the "
+"user will be authenticated using CAS and authenticated in Wordpress only if "
+"he already has an account."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:606
 msgid ""
 "If you choose to allow access only to <em>Wordpress authenticated users</"
-"em>, user will be authenticated using CAS and authenticated in Wordpress if "
-"he already has an account or if you choose to allow adding user in database. "
-"Otherwise, the access will be denied."
+"em>, the user will be authenticated using CAS and authenticated in Wordpress "
+"if he already has an account or if you choose to allow adding user in "
+"database. Otherwise, the access will be denied."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:607
 msgid ""
-"If you choose to allow access to <em>Everyone</em>, no restriction will be "
-"apply."
+"If you choose to allow access to <em>everyone</em>, no restriction will be "
+"applied."
 msgstr ""
 
 #: includes/wp-cas-ldap-options-page.php:616

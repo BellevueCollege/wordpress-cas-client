@@ -79,7 +79,7 @@ class WP_CAS_LDAP {
 			// Drop local session to avoid PHP auto-reconnect
 			session_unset();
 			session_destroy();
-			$message = __( 'You are now disconnected.', 'wpcasldap' );
+			$message = __( 'You are now logged off.', 'wpcasldap' );
 			wp_die( $message, $message, array ('response' => 200) );
 			exit ( );
 		}
@@ -264,7 +264,7 @@ class WP_CAS_LDAP {
 
 			$page_title = sprintf(
 				/* TRANSLATORS: %s: Name of blog */
-				__( '%s - Access Restricted', 'wpcasldap' ),
+				__( '%s - Access restricted', 'wpcasldap' ),
 				get_bloginfo( 'name' )
 			);
 			$error_message = apply_filters( 'the_content', $deny_access_message );

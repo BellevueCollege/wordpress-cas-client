@@ -78,7 +78,7 @@ function wp_cas_ldap_options_page( ) {
 				<th scope="row">
 					<label>
 <?php
-		_e( 'CAS.php Path', 'wpcasldap' );
+		_e( 'CAS.php path', 'wpcasldap' );
 ?>
 					</label>
 				</th>
@@ -88,7 +88,7 @@ function wp_cas_ldap_options_page( ) {
 		echo '<input type="text" size="80" name="wpcasldap_include_path" id="include_path_inp" value="' . $option_array_def['include_path'] . '" />';
 		if ( isset( $option_array_def['include_path'] ) && !empty( $option_array_def['include_path'] ) && !file_exists( $option_array_def['include_path'] ) ) {
 			echo "<p><strong style='color: red'>";
-			_e( 'WARNING : The path to CAS.php file currently defined is incorrect !', 'wpcasldap' );
+			_e( 'WARNING : The path to CAS.php file currently defined is incorrect!', 'wpcasldap' );
 			echo "</strong></p>";
 		}
 ?>
@@ -223,7 +223,7 @@ function wp_cas_ldap_options_page( ) {
 					<label for="disable_cas_logout_no"><?php _e( 'No', 'wpcasldap' ); ?> &nbsp;</label>
 <?php
 			echo '<p><small><em>';
-			_e( "Note: If you disable CAS logout, when user click on logout link, he will be disconnect only from Wordpress, not on CAS server (and potential other CAS authenticed services).", 'wpcasldap' );
+			_e( "Note: If you disable CAS logout, when a user click on the logout link, he will only be logged off from Wordpress, not from the CAS server (and potential other CAS authenticated services).", 'wpcasldap' );
 			echo '</em></small></p>';
 ?>
 				</td>
@@ -258,7 +258,7 @@ function wp_cas_ldap_options_page( ) {
 					<label for="cas_redirect_using_js_no"><?php _e( 'No', 'wpcasldap' ); ?> &nbsp;</label>
 <?php
 			echo '<p><small><em>';
-			_e( "Note: Using Javascript to redirect user to CAS login page permit to keep hashtag in URL (if present).", 'wpcasldap' );
+			_e( "Note: Using Javascript to redirect user to CAS login page enables to keep hashtag in URL (if present).", 'wpcasldap' );
 			echo '</em></small></p>';
 ?>
 				</td>
@@ -278,7 +278,7 @@ function wp_cas_ldap_options_page( ) {
 		! isset( $wp_cas_ldap_options['email_suffix'] ) ) {
 
 		echo '<h4>';
-		_e( 'Treatment of Unregistered User', 'wpcasldap' );
+		_e( 'Treatment of unregistered users', 'wpcasldap' );
 		echo '</h4>';
 ?>
 		<table class="form-table">
@@ -289,7 +289,7 @@ function wp_cas_ldap_options_page( ) {
 				<th scope="row">
 					<label>
 <?php
-			_e( 'Add to Database', 'wpcasldap' );
+			_e( 'Add to database', 'wpcasldap' );
 ?>
 					</label>
 				</th>
@@ -319,7 +319,7 @@ function wp_cas_ldap_options_page( ) {
 				<th scope="row">
 					<label>
 <?php
-			_e( 'Default Role', 'wpcasldap' );
+			_e( 'Default role', 'wpcasldap' );
 ?>
 					</label>
 				</th>
@@ -351,7 +351,7 @@ function wp_cas_ldap_options_page( ) {
 <p>
 <?php
 		echo '<small><em>';
-		_e( "Note: This default role is only used to create user on it's first connection. After, the user role have to be configured in Wordpress and will not be override from LDAP.", 'wpcasldap' );
+		_e( "Note: This default role is only used to create the user on its first connection. Afterwards, the user role could be configured in Wordpress and will not be overwritten from LDAP.", 'wpcasldap' );
 		echo '</em></small>';
 ?>
 </p>
@@ -413,7 +413,7 @@ function wp_cas_ldap_options_page( ) {
 		echo $option_array_def['email_suffix'];
 		echo '" />';
 		echo '<p><small><em>';
-		_e( "Note: This suffix is used to compose user email if it's could not be retreived from LDAP. You only have to enter the email domain name (without the '@').", 'wpcasldap' );
+		_e( "Note: This suffix is used to constitute user email if it couldn't be retreived from LDAP. You must only enter the email domain name (without the '@').", 'wpcasldap' );
 		echo '</em></small></p>';
 ?>
 				</td>
@@ -549,7 +549,7 @@ function wp_cas_ldap_options_page( ) {
 			_e( 'LDAP attributes mapping', 'wpcasldap' );
 			echo '</h4>';
 			echo '<p>';
-			_e( "You have to configure here which LDAP attributes could be map with Wordpress user profil information.", 'wpcasldap' );
+			_e( "You have to configure here which LDAP attributes could be mapped with Wordpress user profil information.", 'wpcasldap' );
 			echo '</p>';
 ?>
 	<table class="form-table">
@@ -600,11 +600,11 @@ function wp_cas_ldap_options_page( ) {
 		echo '</h4>';
 ?>
 	<p>
-	<?php _e( "You could restrict access to the public web site here :", 'wpcasldap' ); ?>
+	<?php _e( "You can restrict access to the public website here:", 'wpcasldap' ); ?>
 	<ul style="list-style-type: disc; padding-left: 1em;">
-		<li><?php _e( "If you choose to allow access only to <em>CAS authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress only if he already has an account.", 'wpcasldap' ); ?></li>
-		<li><?php _e( "If you choose to allow access only to <em>Wordpress authenticated users</em>, user will be authenticated using CAS and authenticated in Wordpress if he already has an account or if you choose to allow adding user in database. Otherwise, the access will be denied.", 'wpcasldap' ); ?></li>
-		<li><?php _e( "If you choose to allow access to <em>Everyone</em>, no restriction will be apply.", 'wpcasldap'); ?></li>
+		<li><?php _e( "If you choose to allow access only to <em>CAS authenticated users</em>, the user will be authenticated using CAS and authenticated in Wordpress only if he already has an account.", 'wpcasldap' ); ?></li>
+		<li><?php _e( "If you choose to allow access only to <em>Wordpress authenticated users</em>, the user will be authenticated using CAS and authenticated in Wordpress if he already has an account or if you choose to allow adding user in database. Otherwise, the access will be denied.", 'wpcasldap' ); ?></li>
+		<li><?php _e( "If you choose to allow access to <em>everyone</em>, no restriction will be applied.", 'wpcasldap'); ?></li>
 	</ul>
 	</p>
 

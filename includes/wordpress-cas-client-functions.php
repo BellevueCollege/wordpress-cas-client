@@ -58,8 +58,8 @@ function authenticate_cas_user() {
 		$cas_root_redirect_url = preg_replace('/service=[^\&]+/', 'service=', $cas_redirect_url);
 		$pagetitle = __( 'Authentication', 'wpcasldap' );
 		$title = __( 'Please wait', 'wpcasldap' );
-		$message = __( 'You will be redirect soon to the login page.', 'wpcasldap' );
-		$noredirect_message = sprintf(__( "If you aren't automatically redirect, please click on <a href='%s'>this link</a>.", 'wpcasldap' ), $cas_redirect_url);
+		$message = __( 'You will be redirected soon to the login page.', 'wpcasldap' );
+		$noredirect_message = sprintf(__( "If you aren't automatically redirected, please click on <a href='%s'>this link</a>.", 'wpcasldap' ), $cas_redirect_url);
 		echo <<<EOF
 <html>
     <head>

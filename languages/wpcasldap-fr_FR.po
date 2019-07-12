@@ -13,8 +13,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: includes/class-wp-cas-ldap.php:82
-msgid "You are now disconnected."
-msgstr "Vous êtes maintenant déconnecté."
+msgid "You are now logged off."
+msgstr "Vous êtes maintenant déconnecté(e)."
 
 #: includes/class-wp-cas-ldap.php:89
 #: includes/wordpress-cas-client-functions.php:42
@@ -35,7 +35,7 @@ msgstr "L'accès à ce site est restreint."
 
 #: includes/class-wp-cas-ldap.php:267
 #, php-format
-msgid "%s - Access Restricted"
+msgid "%s - Access restricted"
 msgstr "%s - Accès restreint"
 
 #: includes/wordpress-cas-client-functions.php:59
@@ -47,16 +47,16 @@ msgid "Please wait"
 msgstr "Merci de patienter"
 
 #: includes/wordpress-cas-client-functions.php:61
-msgid "You will be redirect soon to the login page."
-msgstr "Vous allez être redirigé vers la page de connexion."
+msgid "You will be redirected soon to the login page."
+msgstr "Vous allez être redirigé(e) vers la page de connexion."
 
 #: includes/wordpress-cas-client-functions.php:62
 #, php-format
 msgid ""
-"If you aren't automatically redirect, please click on <a href='%s'>this "
+"If you aren't automatically redirected, please click on <a href='%s'>this "
 "link</a>."
 msgstr ""
-"Si vous n'êtes pas automatiquement redirigé, merci de cliquer sur <a "
+"Si vous n'êtes pas automatiquement redirigé(e), merci de cliquer sur <a "
 "href='%s'>ce lien</a>."
 
 #: includes/wp-cas-ldap-options-page.php:41
@@ -76,7 +76,7 @@ msgid ""
 "Now that you've activated this plugin, WordPress is attempting to "
 "authenticate using CAS, even if it's not configured or misconfigured."
 msgstr ""
-"Maintenant que ce plugin est activé, WordPress tente d'authentifié en "
+"Maintenant que ce plugin est activé, WordPress tente d'authentifier en "
 "utilisant CAS, même si il n'est pas (ou mal) configuré."
 
 #: includes/wp-cas-ldap-options-page.php:57
@@ -85,9 +85,9 @@ msgid ""
 "to test logins. That way you can preserve this session to adjust the "
 "configuration or deactivate the plugin."
 msgstr ""
-"Il est recommandé de tester de vous connecter depuis un autre navigateur ou "
-"un autre ordinateur. De cette façon, vous pouvez conserver cette session "
-"pour ajuster la configuration ou désactiver le plug-in au besoin."
+"Il est recommandé de tester la connexion depuis un autre navigateur ou un "
+"autre ordinateur. De cette façon, vous pouvez conserver cette session pour "
+"ajuster la configuration ou désactiver le plug-in au besoin."
 
 #: includes/wp-cas-ldap-options-page.php:64
 msgid "phpCAS include path"
@@ -103,14 +103,12 @@ msgstr ""
 "serveur."
 
 #: includes/wp-cas-ldap-options-page.php:81
-msgid "CAS.php Path"
+msgid "CAS.php path"
 msgstr "Chemin du fichier CAS.php"
 
 #: includes/wp-cas-ldap-options-page.php:91
-msgid "WARNING : The path to CAS.php file currently defined is incorrect !"
-msgstr ""
-"ATTENTION : Le chemin du fichier CAS.php actuellement configuré est "
-"incorrect !"
+msgid "WARNING : The path to CAS.php file currently defined is incorrect!"
+msgstr "ATTENTION : Le chemin du fichier CAS.php renseigné est incorrect !"
 
 #: includes/wp-cas-ldap-options-page.php:107
 msgid "phpCAS::client() parameters"
@@ -152,11 +150,11 @@ msgstr "Non"
 
 #: includes/wp-cas-ldap-options-page.php:226
 msgid ""
-"Note: If you disable CAS logout, when user click on logout link, he will be "
-"disconnect only from Wordpress, not on CAS server (and potential other CAS "
-"authenticed services)."
+"Note: If you disable CAS logout, when a user click on the logout link, he "
+"will only be logged off from Wordpress, not from the CAS server (and "
+"potential other CAS authenticated services)."
 msgstr ""
-"Remarque : Si vous désactiver la déconnexion CAS, quand l'utilisateur "
+"Remarque : Si vous désactivez la déconnexion CAS, quand l'utilisateur "
 "cliquera sur le lien de déconnexion, il sera déconnecté uniquement au niveau "
 "de WordPress, et non au niveau du serveur CAS (et potentiellement des autres "
 "services utilisant l'authentification CAS)."
@@ -167,33 +165,34 @@ msgstr "Rediriger vers la page de connexion CAS en utilisant Javascript"
 
 #: includes/wp-cas-ldap-options-page.php:261
 msgid ""
-"Note: Using Javascript to redirect user to CAS login page permit to keep "
+"Note: Using Javascript to redirect user to CAS login page enables to keep "
 "hashtag in URL (if present)."
 msgstr ""
 "Remarque : Utiliser Javascript pour rediriger l'utilisateur vers la page de "
-"connexion CAS permet de conserver l'hasttag dans l'URL (si il est présent)."
+"connexion CAS permet de conserver l'hashtag dans l'URL (s'il est présent)."
 
 #: includes/wp-cas-ldap-options-page.php:281
-msgid "Treatment of Unregistered User"
+msgid "Treatment of unregistered users"
 msgstr "Traitement des utilisateurs non-inscris"
 
 #: includes/wp-cas-ldap-options-page.php:292
-msgid "Add to Database"
-msgstr "Ajouter à la base de donnés"
+msgid "Add to database"
+msgstr "Ajouter à la base de données"
 
 #: includes/wp-cas-ldap-options-page.php:322
-msgid "Default Role"
+msgid "Default role"
 msgstr "Rôle par défaut"
 
 #: includes/wp-cas-ldap-options-page.php:354
 msgid ""
-"Note: This default role is only used to create user on it's first "
-"connection. After, the user role have to be configured in Wordpress and will "
-"not be override from LDAP."
+"Note: This default role is only used to create the user on its first "
+"connection. Afterwards, the user role could be configured in Wordpress and "
+"will not be overwritten from LDAP."
 msgstr ""
 "Remarque : Ce rôle par défaut est uniquement utilisé pour créer "
-"l'utilisateur lors de sa première connexion. Après, le rôle de l'utilisateur "
-"configuré dans Wordpress est préservé."
+"l'utilisateur lors de sa première connexion. Par la suite, le rôle de "
+"l'utilisateur peut-être configuré dans Wordpress et ne sera écrasé depuis le "
+"LDAP."
 
 #: includes/wp-cas-ldap-options-page.php:370
 msgid "Use LDAP to get user info"
@@ -205,12 +204,12 @@ msgstr "Suffixe du courriel"
 
 #: includes/wp-cas-ldap-options-page.php:416
 msgid ""
-"Note: This suffix is used to compose user email if it's could not be "
-"retreived from LDAP. You only have to enter the email domain name (without "
-"the '@')."
+"Note: This suffix is used to constitute user email if it couldn't be "
+"retreived from LDAP. You must only enter the email domain name (without the "
+"'@')."
 msgstr ""
 "Remarque : Ce suffixe est utilisé pour composer le courriel de l'utilisateur "
-"si celui-ci n'a put être récupéré depuis LDAP. Vous devez saisir uniquement "
+"si celui-ci n'a pu être récupéré depuis LDAP. Vous devez saisir uniquement "
 "le nom de domaine de messagerie (sans le '@')."
 
 #: includes/wp-cas-ldap-options-page.php:435
@@ -243,8 +242,8 @@ msgstr "Correspondance des attributs LDAP"
 
 #: includes/wp-cas-ldap-options-page.php:552
 msgid ""
-"You have to configure here which LDAP attributes could be map with Wordpress "
-"user profil information."
+"You have to configure here which LDAP attributes could be mapped with "
+"Wordpress user profil information."
 msgstr ""
 "Vous devez configurer ici quels attributs LDAP peuvent être utilisés pour "
 "renseigner les informations du profil de l'utilisateur dans Wordpress."
@@ -295,14 +294,14 @@ msgid "Site access restriction"
 msgstr "Restriction d'accès au site"
 
 #: includes/wp-cas-ldap-options-page.php:603
-msgid "You could restrict access to the public web site here :"
-msgstr "Vous pouvez restreindre l'accès au site publique ici :"
+msgid "You can restrict access to the public website here:"
+msgstr "Vous pouvez restreindre l'accès au site public ici :"
 
 #: includes/wp-cas-ldap-options-page.php:605
 msgid ""
-"If you choose to allow access only to <em>CAS authenticated users</em>, user "
-"will be authenticated using CAS and authenticated in Wordpress only if he "
-"already has an account."
+"If you choose to allow access only to <em>CAS authenticated users</em>, the "
+"user will be authenticated using CAS and authenticated in Wordpress only if "
+"he already has an account."
 msgstr ""
 "Si vous choisissez d'autoriser l'accès uniquement <em>aux utilisateurs "
 "authentifiés via CAS</em>, l'utilisateur sera authentifié via CAS puis via "
@@ -311,20 +310,20 @@ msgstr ""
 #: includes/wp-cas-ldap-options-page.php:606
 msgid ""
 "If you choose to allow access only to <em>Wordpress authenticated users</"
-"em>, user will be authenticated using CAS and authenticated in Wordpress if "
-"he already has an account or if you choose to allow adding user in database. "
-"Otherwise, the access will be denied."
+"em>, the user will be authenticated using CAS and authenticated in Wordpress "
+"if he already has an account or if you choose to allow adding user in "
+"database. Otherwise, the access will be denied."
 msgstr ""
 "Si vous choisissez d'autoriser l'accès uniquement <em>aux utilisateurs "
-"authentifié par Wordpress</em>, l'utilisateur sera authentifié via CAS puis "
+"authentifiés par Wordpress</em>, l'utilisateur sera authentifié via CAS puis "
 "via Wordpress s'il y possède déjà un compte utilisateur ou si vous avez "
 "choisi d'autoriser l'ajout des utilisateurs non-inscrits dans la base de "
 "données. Autrement, l'accès sera refusé."
 
 #: includes/wp-cas-ldap-options-page.php:607
 msgid ""
-"If you choose to allow access to <em>Everyone</em>, no restriction will be "
-"apply."
+"If you choose to allow access to <em>everyone</em>, no restriction will be "
+"applied."
 msgstr ""
 "Si vous choisissez d'autoriser l'accès à <em>tout le monde</em>, aucune "
 "restriction ne sera appliquée."
@@ -354,8 +353,18 @@ msgid "Save"
 msgstr "Enregistrer"
 
 #~ msgid ""
-#~ "If you aren't automatically redirect, please click on <a href='%s'>this "
+#~ "Note: This default role is only used to create the user on its first "
+#~ "connection. Afterwards, the user role could be configured in Wordpress "
+#~ "and will not be overwritten by LDAP information."
+#~ msgstr ""
+#~ "Remarque : Ce rôle par défaut est uniquement utilisé pour créer "
+#~ "l'utilisateur lors de sa première connexion. Par la suite, le rôle de "
+#~ "l'utilisateur peut-être configuré dans Wordpress et ne sera écrasé depuis "
+#~ "le LDAP."
+
+#~ msgid ""
+#~ "If you aren't automatically redirected, please click on <a href='%s'>this "
 #~ "link</>."
 #~ msgstr ""
-#~ "Si vous n'êtes pas redirigé automatiquement, merci de cliquer sur <a "
+#~ "Si vous n'êtes pas redirigé(e) automatiquement, merci de cliquer sur <a "
 #~ "href='%s'>ce lien</a>."
