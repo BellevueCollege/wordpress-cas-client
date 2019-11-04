@@ -230,7 +230,7 @@ class WP_CAS_LDAP {
 	/**
 	 * Deny access to user :
          *  - if this is a REST API call, render an error message as JSON
-         *  - otherwise, redirect to access denied page if defined or render an error messaoge using wp_die() 
+         *  - otherwise, redirect to access denied page if defined or render an error message using wp_die()
          **/
 	function deny_access() {
 		$deny_access_message = __( 'Access to this site is restricted.', 'wpcasldap' );

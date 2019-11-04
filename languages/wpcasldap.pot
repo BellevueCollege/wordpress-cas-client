@@ -199,73 +199,111 @@ msgstr ""
 msgid "LDAP Bind password"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:549
+#: includes/wp-cas-ldap-options-page.php:551
+msgid "LDAP users Base DN"
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:561
+#: includes/wp-cas-ldap-options-page.php:609
+msgid ""
+"Note: This parameter is optional. The base DN of the LDAP server is used "
+"otherwise."
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:575
+msgid "LDAP users filter"
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:585
+msgid ""
+"Note: This parameter is optional. If it's provided, this filter will be "
+"combined with the LDAP filter generating from the user's login."
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:599
+msgid "LDAP groups Base DN"
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:623
+msgid "LDAP groups filter"
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:633
+msgid ""
+"Note: This parameter is required to retreive the user's groups. In this "
+"filter, the keywords enclosed by brace will be replace by user's "
+"corresponding information. For instance, {user_login} will be replace by the "
+"user's login or {user_email} by the user's email. You also can use the "
+"keyword {user_dn} that will be replaced by the LDAP user object's DN."
+msgstr ""
+
+#: includes/wp-cas-ldap-options-page.php:644
 msgid "LDAP attributes mapping"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:552
+#: includes/wp-cas-ldap-options-page.php:647
 msgid ""
 "You have to configure here which LDAP attributes could be mapped with "
 "Wordpress user profil information."
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:558
+#: includes/wp-cas-ldap-options-page.php:653
 msgid "the login"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:559
+#: includes/wp-cas-ldap-options-page.php:654
 msgid "the first name"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:560
+#: includes/wp-cas-ldap-options-page.php:655
 msgid "the last name"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:561
+#: includes/wp-cas-ldap-options-page.php:656
 msgid "the nickname"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:562
+#: includes/wp-cas-ldap-options-page.php:657
 msgid "the nice name"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:563
+#: includes/wp-cas-ldap-options-page.php:658
 msgid "the role"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:564
+#: includes/wp-cas-ldap-options-page.php:659
 msgid "the affiliations"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:565
+#: includes/wp-cas-ldap-options-page.php:660
 msgid "the email"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:566
+#: includes/wp-cas-ldap-options-page.php:661
 msgid "the alternative email"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:575
+#: includes/wp-cas-ldap-options-page.php:670
 #, php-format
 msgid "LDAP attribut for %s"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:599
+#: includes/wp-cas-ldap-options-page.php:694
 msgid "Site access restriction"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:603
+#: includes/wp-cas-ldap-options-page.php:698
 msgid "You can restrict access to the public website here:"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:605
+#: includes/wp-cas-ldap-options-page.php:700
 msgid ""
 "If you choose to allow access only to <em>CAS authenticated users</em>, the "
 "user will be authenticated using CAS and authenticated in Wordpress only if "
 "he already has an account."
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:606
+#: includes/wp-cas-ldap-options-page.php:701
 msgid ""
 "If you choose to allow access only to <em>Wordpress authenticated users</"
 "em>, the user will be authenticated using CAS and authenticated in Wordpress "
@@ -273,32 +311,32 @@ msgid ""
 "database. Otherwise, the access will be denied."
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:607
+#: includes/wp-cas-ldap-options-page.php:702
 msgid ""
 "If you choose to allow access to <em>everyone</em>, no restriction will be "
 "applied."
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:616
+#: includes/wp-cas-ldap-options-page.php:711
 msgid "Restrict site access to"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:625
+#: includes/wp-cas-ldap-options-page.php:720
 msgid "Everyone"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:629
+#: includes/wp-cas-ldap-options-page.php:724
 msgid "CAS authenticated users"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:633
+#: includes/wp-cas-ldap-options-page.php:728
 msgid "Wordpress authenticated users"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:649
+#: includes/wp-cas-ldap-options-page.php:744
 msgid "Access denied redirect URL"
 msgstr ""
 
-#: includes/wp-cas-ldap-options-page.php:665
+#: includes/wp-cas-ldap-options-page.php:760
 msgid "Save"
 msgstr ""

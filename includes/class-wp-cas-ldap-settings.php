@@ -68,6 +68,10 @@ class wp_cas_ldap_settings {
 		'ldapbindpwd' => array (
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_encrypt_ldapbindpwd' ),
 		),
+		'ldap_users_basedn' => array (),
+		'ldap_users_filter' => array (),
+		'ldap_groups_basedn' => array (),
+		'ldap_groups_filter' => array (),
 		'useldap' => array (
 			'sanitize_callback' => array( 'wp_cas_ldap_settings', 'sanitize_yes_or_no' ),
 		),

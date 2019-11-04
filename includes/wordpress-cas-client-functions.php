@@ -216,10 +216,18 @@ function get_ldap_user( $login ) {
 				if ( ! $bind ) {
 					error_log( 'LDAP Bind failed with Service Account' );
 				} else {
+					// Compose LDAP filter string from user login
+					$filterstr = '('.$wp_cas_ldap_use_options['ldap_map_login_attr'] . '=' . $login.')';
+					if ($wp_cas_ldap_use_options['ldap_users_filter']) {
+						$optional_filterstr = $wp_cas_ldap_use_options['ldap_users_filter'];
+						if ($optional_filterstr[0] != '(')
+							$optional_filterstr = "($optional_filterstr)";
+						$filterstr = "(&".$optional_filterstr.$filterstr.")";
+					}
 					$search = ldap_search(
 						$ds,
-						$wp_cas_ldap_use_options['ldapbasedn'],
-						$wp_cas_ldap_use_options['ldap_map_login_attr'] . '=' . $login,
+						($wp_cas_ldap_use_options['ldap_users_basedn']?$wp_cas_ldap_use_options['ldap_users_basedn']:$wp_cas_ldap_use_options['ldapbasedn']),
+						$filterstr,
 						array(
 							$wp_cas_ldap_use_options['ldap_map_login_attr'],
 							$wp_cas_ldap_use_options['ldap_map_email_attr'],
@@ -237,10 +245,58 @@ function get_ldap_user( $login ) {
 						$count = ldap_count_entries( $ds, $search);
 						if ($count == 1) {
 							$entry = ldap_first_entry( $ds, $search );
-							return new WP_CAS_LDAP_User(
+							$user = new WP_CAS_LDAP_User(
 								ldap_get_dn( $ds, $entry),
 								ldap_get_attributes( $ds, $entry)
 							);
+							ldap_free_result($search);
+
+							// Get user's groups (if configured)
+							if ($wp_cas_ldap_use_options['ldap_groups_filter']) {
+
+								// Generate user's group LDAP filter from user's DN and data
+								$filterstr = $wp_cas_ldap_use_options['ldap_groups_filter'];
+								$user_data = $user -> get_user_data();
+								if (!preg_match_all("|\{([^\}]+)\}|", $filterstr, $matches, PREG_PATTERN_ORDER)) {
+									error_log( "Fail to compose user's groups LDAP filter : no keyword to substitute" );
+								}
+								else {
+									for($i=0;$i<count($matches[0]);$i++) {
+                		$keyword = $matches[0][$i];
+                		$info = $matches[1][$i];
+										if ($info == 'user_dn')
+											$value = $user -> get_user_dn();
+										elseif (isset($user_data[$info]))
+											$value = $user_data[$info];
+										else {
+											error_log( "Fail to compose user's groups LDAP filter : unknown keyword '$keyword'" );
+											return $user;
+										}
+                    $filterstr = str_replace($keyword, $value, $filterstr);
+        					}
+
+									// Lookup for user's groups in LDAP
+									$basedn = ($wp_cas_ldap_use_options['ldap_groups_basedn']?$wp_cas_ldap_use_options['ldap_groups_basedn']:$wp_cas_ldap_use_options['ldapbasedn']);
+									$search = ldap_search(
+										$ds,
+										$basedn,
+										$filterstr
+									);
+									if(!$search) {
+										ldap_get_option($ds, LDAP_OPT_DIAGNOSTIC_MESSAGE, $details);
+										error_log( "Fail to retreive user's groups with filter '$filterstr' on $basedn : ".ldap_error($ds).($details?", details : $details":"") );
+										return $user;
+									}
+									$data = ldap_get_entries($ds, $search);
+									$user_groups = array();
+									for($i=0; $i < $data['count']; $i++) {
+										$user_groups[] = $data[$i]['dn'];
+									}
+									ldap_free_result($search);
+									$user -> set_user_groups($user_groups);
+								}
+								return $user;
+							}
 						}
 						else {
 							error_log("Duplicated users found in LDAP for login '$login'.");

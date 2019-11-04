@@ -542,6 +542,101 @@ function wp_cas_ldap_options_page( ) {
 <?php
 			}
 
+			if ( ! isset( $wp_cas_ldap_options['ldap_users_basedn'] ) ) {
+?>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+				_e( 'LDAP users Base DN', 'wpcasldap' );
+?>
+				</label>
+			</th>
+			<td>
+<?php
+				echo '<input type="text" size="50" name="wpcasldap_ldap_users_basedn" id="ldap_users_basedn_inp" value="';
+				echo $option_array_def['ldap_users_basedn'];
+				echo '" />';
+				echo '<p><small><em>';
+				_e( "Note: This parameter is optional. The base DN of the LDAP server is used otherwise.", 'wpcasldap' );
+				echo '</em></small></p>';
+?>
+			</td>
+		</tr>
+<?php
+			}
+
+			if ( ! isset( $wp_cas_ldap_options['ldap_users_filter'] ) ) {
+?>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+				_e( 'LDAP users filter', 'wpcasldap' );
+?>
+				</label>
+			</th>
+			<td>
+<?php
+				echo '<input type="text" size="50" name="wpcasldap_ldap_users_filter" id="ldap_users_filter_inp" value="';
+				echo $option_array_def['ldap_users_filter'];
+				echo '" />';
+				echo '<p><small><em>';
+				_e( "Note: This parameter is optional. If it's provided, this filter will be combined with the LDAP filter generating from the user's login.", 'wpcasldap' );
+				echo '</em></small></p>';
+?>
+			</td>
+		</tr>
+<?php
+			}
+
+			if ( ! isset( $wp_cas_ldap_options['ldap_groups_basedn'] ) ) {
+?>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+				_e( 'LDAP groups Base DN', 'wpcasldap' );
+?>
+				</label>
+			</th>
+			<td>
+<?php
+				echo '<input type="text" size="50" name="wpcasldap_ldap_groups_basedn" id="ldap_groups_basedn_inp" value="';
+				echo $option_array_def['ldap_groups_basedn'];
+				echo '" />';
+				echo '<p><small><em>';
+				_e( "Note: This parameter is optional. The base DN of the LDAP server is used otherwise.", 'wpcasldap' );
+				echo '</em></small></p>';
+?>
+			</td>
+		</tr>
+<?php
+			}
+
+			if ( ! isset( $wp_cas_ldap_options['ldap_groups_filter'] ) ) {
+?>
+		<tr valign="top">
+			<th scope="row">
+				<label>
+<?php
+				_e( 'LDAP groups filter', 'wpcasldap' );
+?>
+				</label>
+			</th>
+			<td>
+<?php
+				echo '<input type="text" size="50" name="wpcasldap_ldap_groups_filter" id="ldap_groups_filter_inp" value="';
+				echo $option_array_def['ldap_groups_filter'];
+				echo '" />';
+				echo '<p><small><em>';
+				_e( "Note: This parameter is required to retreive the user's groups. In this filter, the keywords enclosed by brace will be replace by user's corresponding information. For instance, {user_login} will be replace by the user's login or {user_email} by the user's email. You also can use the keyword {user_dn} that will be replaced by the LDAP user object's DN.", 'wpcasldap' );
+				echo '</em></small></p>';
+?>
+			</td>
+		</tr>
+<?php
+			}
 ?>
 	</table>
 <?php

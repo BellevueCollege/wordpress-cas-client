@@ -34,6 +34,7 @@ require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/generate-password.php';
 class WP_CAS_LDAP_User {
 	private $dn = null;
 	private $attributes = array();
+	private $groups = array();
 
 	/**
 	 * __construct method for WP_CAS_LDAP_User class
@@ -48,6 +49,15 @@ class WP_CAS_LDAP_User {
 				$this -> attributes[strtolower($attr)] = $values;
 			}
 		}
+	}
+
+	/**
+	 * get_user_dn method for WP_CAS_LDAP_User class
+	 *
+	 * @return string|false returns the user DN from private $dn.
+	 */
+	function get_user_dn( ) {
+		return $this -> dn;
 	}
 
 	/**
@@ -82,6 +92,7 @@ class WP_CAS_LDAP_User {
 				'affiliations'  => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_affiliations_attr'], null, null, true),
 				'nickname'      => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nickname_attr']),
 				'user_nicename' => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nicename_attr'], null, sanitize_title_with_dashes($this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']))),
+				'ldap_groups'		=> $this -> groups,
 			);
 		} else {
 			return false;
@@ -105,5 +116,28 @@ class WP_CAS_LDAP_User {
 		else {
 			return $default_value;
 		}
+	}
+
+	/**
+	 * get_user_groups method for WP_CAS_LDAP_User class
+	 *
+	 * @return array
+	 */
+	function get_user_groups() {
+		return $this -> groups;
+	}
+
+	/**
+	 * set_user_groups method for WP_CAS_LDAP_User class
+	 *
+	 * @param array $groups array of ldap user's groups DN.
+	 * @return boolean
+	 */
+	function set_user_groups($groups) {
+		if (is_array($groups)) {
+			$this -> groups = $groups;
+			return True;
+		}
+		return False;
 	}
 }
