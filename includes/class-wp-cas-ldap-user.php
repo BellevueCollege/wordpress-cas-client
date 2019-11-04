@@ -32,28 +32,42 @@ require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/generate-password.php';
  * WP_CAS_LDAP_User class
  */
 class WP_CAS_LDAP_User {
-	private $data = null;
+	private $dn = null;
+	private $attributes = array();
+	private $groups = array();
 
 	/**
 	 * __construct method for WP_CAS_LDAP_User class
 	 *
-	 * @param array $member_array information about the ldap user.
+	 * @param array $entry informations about the ldap user.
 	 */
-	function __construct( $member_array ) {
-		$this->data = $member_array;
+	function __construct( $dn, $attributes ) {
+		$this -> dn = $dn;
+		if (is_array($attributes)) {
+			foreach ($attributes as $attr => $values) {
+				if (isset($values['count'])) unset($values['count']);
+				$this -> attributes[strtolower($attr)] = $values;
+			}
+		}
+	}
+
+	/**
+	 * get_user_dn method for WP_CAS_LDAP_User class
+	 *
+	 * @return string|false returns the user DN from private $dn.
+	 */
+	function get_user_dn( ) {
+		return $this -> dn;
 	}
 
 	/**
 	 * get_user_name method for WP_CAS_LDAP_User class
 	 *
-	 * @return string|false returns 'cn' value fromprivate $data array.
+	 * @return string|false returns the user name from private $attributes array.
 	 */
 	function get_user_name( ) {
-		if ( isset( $this->data[0]['cn'][0] ) ) {
-			return $this->data[0]['cn'][0];
-		} else {
-			return false;
-		}
+		global $wp_cas_ldap_use_options;
+		return $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nicename_attr'], $wp_cas_ldap_use_options['ldap_map_nickname_attr']);
 	}
 
 	/**
@@ -63,26 +77,67 @@ class WP_CAS_LDAP_User {
 	 */
 	function get_user_data( ) {
 		global $wp_cas_ldap_use_options;
-		if ( isset( $this->data[0]['uid'][0] ) || isset( $this->data[0]['employeeid'][0] ) ) {
-			$user_role = '';
-			$user_nice_name = sanitize_title_with_dashes( $this->data[0]['samaccountname'][0] );
-			if ( isset( $this->data[0]['employeeid'][0] ) ) {
-				$user_role = $GLOBALS['defaultEmployeeUserrole'];
-			} else {
-				$user_role = $GLOBALS['defaultStudentUserrole'];
-			}
+		if ( $wp_cas_ldap_use_options['ldap_map_login_attr'] && $this->get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']) ) {
 			return array(
-				'user_login'    => $this->data[0]['samaccountname'][0],
+				'user_login'    => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']),
 				'user_pass'     => generate_password( 32, 64 ),
-				'user_email'    => $this->data[0]['mail'][0],
-				'first_name'    => $this->data[0]['givenname'][0],
-				'last_name'     => $this->data[0]['sn'][0],
-				'role'          => $user_role,
-				'nickname'      => $this->data[0]['cn'][0],
-				'user_nicename' => $user_nice_name,
+				'user_email'    => $this -> get_user_attr(
+					$wp_cas_ldap_use_options['ldap_map_email_attr'],
+					$wp_cas_ldap_use_options['ldap_map_alt_email_attr'],
+					($wp_cas_ldap_use_options['email_suffix']?$this->get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']). '@' . $wp_cas_ldap_use_options['email_suffix']:null)
+				),
+				'first_name'    => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_first_name_attr']),
+				'last_name'     => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_last_name_attr']),
+				'role'          => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_role_attr'], null, $wp_cas_ldap_use_options['userrole']),
+				'affiliations'  => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_affiliations_attr'], null, null, true),
+				'nickname'      => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nickname_attr']),
+				'user_nicename' => $this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_nicename_attr'], null, sanitize_title_with_dashes($this -> get_user_attr($wp_cas_ldap_use_options['ldap_map_login_attr']))),
+				'ldap_groups'		=> $this -> groups,
 			);
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * get_user_attr method for WP_CAS_LDAP_User class
+	 *
+	 * @return string|null
+	 */
+	function get_user_attr($attr, $alt_attr=null, $default_value=null, $all=null) {
+		$attr = ($attr?strtolower($attr):null);
+		$alt_attr = ($alt_attr?strtolower($alt_attr):null);
+		if($attr && isset($this->attributes[$attr]) && !empty($this->attributes[$attr])) {
+			return ($all?$this->attributes[$attr]:$this->attributes[$attr][0]);
+		}
+		elseif($alt_attr && isset($this->attributes[$alt_attr]) && !empty($this->attributes[$alt_attr])) {
+			return ($all?$this->attributes[$alt_attr]:$this->attributes[$alt_attr][0]);
+		}
+		else {
+			return $default_value;
+		}
+	}
+
+	/**
+	 * get_user_groups method for WP_CAS_LDAP_User class
+	 *
+	 * @return array
+	 */
+	function get_user_groups() {
+		return $this -> groups;
+	}
+
+	/**
+	 * set_user_groups method for WP_CAS_LDAP_User class
+	 *
+	 * @param array $groups array of ldap user's groups DN.
+	 * @return boolean
+	 */
+	function set_user_groups($groups) {
+		if (is_array($groups)) {
+			$this -> groups = $groups;
+			return True;
+		}
+		return False;
 	}
 }

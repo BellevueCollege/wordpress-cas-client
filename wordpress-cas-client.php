@@ -1,13 +1,18 @@
 <?php
 /*
-Plugin Name: WordPress CAS Client
-Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a> single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user information after the user has successfully logged on to WordPress. This plugin is a fork of the <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
-Version: 1.4
-Author: Bellevue College
-Author URI: http://www.bellevuecollege.edu
-License: GNU General Public License v2 or later
-Plugin URI: BellevueCollege/wordpress-cas-client
-*/
+ * Plugin Name: WordPress CAS Client
+ * Description: Integrates WordPress with existing <a href="http://en.wikipedia.org/wiki/Central_Authentication_Service">CAS</a>
+ * single sign-on architectures. Additionally this plugin can use a LDAP server (such as Active Directory) for populating user
+ * information after the user has successfully logged on to WordPress. This plugin is a fork of the
+ * <a href="http://wordpress.org/extend/plugins/wpcas-w-ldap">wpCAS-w-LDAP</a> plugin.
+ * Version: 1.4
+ * Author: Bellevue College
+ * Author URI: http://www.bellevuecollege.edu
+ * Text Domain: wpcasldap
+ * Domain Path: /languages
+ * License: GNU General Public License v2 or later
+ * Plugin URI: BellevueCollege/wordpress-cas-client
+ */
 
 /*
  * WordPress CAS Client plugin used to authenticate users against a CAS server
@@ -53,10 +58,10 @@ Plugin URI: BellevueCollege/wordpress-cas-client
 define( 'CAPABILITY', 'edit_themes' );
 define( 'CAS_CLIENT_ROOT', dirname( __FILE__ ) );
 
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/admin-option-page-functions.php';
+require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/class-wp-cas-ldap-settings.php';
 require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/class-wp-cas-ldap.php';
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/includes/update-network-settings.php';
-require_once constant( 'CAS_CLIENT_ROOT' ) . '/config.php';
+if (file_exists(constant( 'CAS_CLIENT_ROOT' ) . '/config.php'))
+	require_once constant( 'CAS_CLIENT_ROOT' ) . '/config.php';
 
 /*
  * Configure plugin WordPress Hooks
@@ -66,8 +71,6 @@ require_once constant( 'CAS_CLIENT_ROOT' ) . '/config.php';
  * This global variable is set to either 'get_option' or 'get_site_option'
  * depending on multisite option value.
  */
-global $get_options_func;
-$get_options_func = 'get_option';
 
 /*
  * This global variable is defaulted to 'options.php' , but for network
@@ -76,23 +79,23 @@ $get_options_func = 'get_option';
 global $form_action;
 $form_action = 'options.php';
 
-if ( is_multisite( ) ) {
-	update_network_settings( );
-	add_action( 'network_admin_menu', 'cas_client_settings' );
-
-	$get_options_func = 'get_site_option';
+if ( wp_cas_ldap_settings :: is_enabled_for_network( ) ) {
+	add_action( 'network_admin_menu', array ( 'wp_cas_ldap_settings', 'add_cas_client_network_admin_menu' ) );
 	$form_action = '';
 } elseif ( is_admin( ) ) {
-	add_action( 'admin_init', 'wp_cas_ldap_register_settings' );
-	add_action( 'admin_menu', 'wp_cas_ldap_options_page_add' );
+	add_action( 'admin_init', array ( 'wp_cas_ldap_settings', 'register_settings' ) );
+	add_action( 'admin_menu', array ( 'wp_cas_ldap_settings', 'add_cas_client_admin_menu' ) );
 }
 
+add_action( 'plugins_loaded', array( 'WP_CAS_LDAP', 'plugins_loaded' ) );
 add_action( 'wp_authenticate', array( 'WP_CAS_LDAP', 'authenticate' ), 10, 2 );
 add_action( 'wp_logout', array( 'WP_CAS_LDAP', 'logout' ) );
 add_action( 'lost_password', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_action( 'retrieve_password', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_action( 'password_reset', array( 'WP_CAS_LDAP', 'disable_function' ) );
 add_filter( 'show_password_fields', array( 'WP_CAS_LDAP', 'show_password_fields' ) );
+
+add_action( 'parse_request', array( 'WP_CAS_LDAP', 'restrict_access' ), 9 );
 
 /*
  * Prevent 'Password Changed' email from being sent
@@ -109,7 +112,7 @@ if ( $wp_cas_ldap_options ) {
 	}
 }
 
-$wp_cas_ldap_use_options = wp_cas_ldap_get_options( );
+$wp_cas_ldap_use_options = wp_cas_ldap_settings :: get_options( );
 
 global $cas_configured;
 $cas_configured = false;
